@@ -16,8 +16,23 @@ SFM::SFM(string datasetFolder, string inputImagesFile)
     _listOfImages = datasetFolder + "/list.txt";
     _bundleFile = datasetFolder + "/notredame.out";
   }
+  print("Using images from " << _inputImagesFile);
+  print("Reading bundle data from " << _bundleFile);
+  print("Reading images from " << _listOfImages);
+  print("");
+
+  clock_t begin,end;
+  begin = clock();
+  print("Populating images");
   populateImages();
+  end = clock();
+  print(_images.size() << " images created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
+
+  begin = clock();
+  print("Populating tracks");
   populateTracks();
+  end = clock();
+  print(_tracks.size() << " tracks created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
 }
 
 void SFM::populateImages()

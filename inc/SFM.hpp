@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <ctime>
 
 #include "definitions.hpp"
 #include "Eigen/Core"
