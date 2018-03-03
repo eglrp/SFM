@@ -1,5 +1,9 @@
+#ifndef DEFINITIONS_HPP
+#define DEFINITIONS_HPP
+
 #include <vector>
 #include <Eigen/Core>
+#include <iostream>
 
 #define print(x) std::cout << x << std::endl;
 
@@ -40,9 +44,10 @@ struct Track
 {
   int id;
   Eigen::Vector3f groundTruth;
+  Eigen::Vector3f position3D;
   Eigen::Vector3i color;
   Occurrences occurrences;
-
+  int nPoints;
   void printTrack()
   {
     print("GT: " << groundTruth);
@@ -52,10 +57,11 @@ struct Track
     {
       print("camkey:" << el.first);
       print("Position:" << el.second);
-
     }
   }
 
 };
 
 typedef std::vector< Track > Tracks;
+
+#endif

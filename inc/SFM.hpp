@@ -7,9 +7,11 @@
 #include <sstream>
 #include <algorithm>
 #include <ctime>
+#include "Eigen/Core"
 
 #include "definitions.hpp"
-#include "Eigen/Core"
+#include "math.hpp"
+
 
 using namespace std;
 

@@ -27,6 +27,7 @@ include_directories(
 
 set(SFM_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/SFM.cpp
+  ${PROJECT_SOURCE_DIR}/src/math.cpp
 )
 add_library(SFM_libs ${SFM_SOURCE_FILES})
 set(BOOST_THREAD_LIBRARY boost_thread)

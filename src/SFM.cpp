@@ -206,6 +206,7 @@ void SFM::populateTrack(ifstream& openFile)
     track.groundTruth = groundTruth;
     track.color = color;
     track.occurrences = occurrences;
+    track.nPoints = occurrences.size();
     _tracks.push_back(track);
   }
   return;
@@ -214,5 +215,12 @@ void SFM::populateTrack(ifstream& openFile)
 
 void SFM::computeSFM()
 {
+  if(_tracks.size() < 2 || _images.size() < 2)
+  {
+    print("Error, insufficient images to perform SFM. Aborting.");
+    return;
+  }
+
+  triangulateTrackDLT(_tracks[0], _images);
 
 }
