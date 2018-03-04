@@ -4,22 +4,15 @@
 Vec3 triangulateTrackDLT(const Track& track, const ImagesVec& images)
 {
   int nViews = track.nPoints;
-  Matrix<float,Dynamic,3> A;
-  Matrix<float,Dynamic,1> B;
-  A.resize(2*nViews,3);
-  B.resize(2*nViews,1);
 
-  int i = 0;
   std::vector<Mat34> poses(nViews);
   Mat3X points(3, nViews);
 
-//  points.resize(3,nViews);
-
-  for(auto el:track.occurrences)
+  for(int i = 0; i < nViews; i++)
   {
-    int camKey = el.first;
-    float x = el.second(0);
-    float y = el.second(1);
+    KeyPoint kp = track.occurrences[i];
+    int camKey = kp.first;
+    Vector2d distorted = kp.second;
 
     // Look for image:
     // predicate to find the right camera
@@ -30,58 +23,46 @@ Vec3 triangulateTrackDLT(const Track& track, const ImagesVec& images)
     auto it = find_if(begin(images),end(images),pred);
 
     assert(camKey == it->id);
-    if(camKey == -1)
-    {
-      print(it->id);
-      print(it->name);
-      print(it->f);
-      print(camKey);
-    }
-    float f = it->f;
-    float k1 = it->k1;
-    float k2 = it->k2;
-    Vector2f p(x,y);
-    Vector2f q;
-    undistortPoint(p,q,f,k1,k2);
-    x = q(0);
-    y = q(1);
 
-    Vec3 point(x,y,1);
+    // Get R,t,and K:
+    double f,k1,k2;
+    f = it->f;
+    k1 = it->k1;
+    k2 = it->k2;
 
-    Matrix<float,3,4> P;
-    computeProjectionMatrix(it->R,it->t, P);
+    // Undistort the points: pixel -> image coords
+    double cx = 0,cy = 0; // Pixel positions are already counted from center
+    Vector2d undistorted;
+    undistortPoint(distorted, undistorted,cx,cy,f,k1,k2);
+    points.col(i) = undistorted.homogeneous();
 
-    poses[i] = P.cast<double>();
-
-    points.col(i) = point;
-
-    i++;
+    // Get the pose:
+    Matrix3d R = it->R;
+    Vector3d t = it->t;
+    Matrix<double,3,4> P;
+    computeProjectionMatrix(R,t,P);
+    poses[i] = P;
   }
   Vec4 X;
-  //print(points.rows() << "x" << points.cols());
-  //print(points)
   bool success = TriangulateNViewAlgebraic(points.cast<double>(),poses, &X);
-  //Vec3 sol(X(0),X(1),X(2));
+  if(success)
+  {
   Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
   return sol;
+  }
+  else
+  {
+      return Vec3(X(0),X(1),X(2));
+  }
 }
 
-void IterativeLinearLSTriangulation(const Track& track, const ImagesVec& images)
-{
-  int n = track.nPoints;
-  Matrix<float,Dynamic,3> A;
-  Matrix<float,Dynamic,1> B;
-  A.resize(2*n,3);
-  B.resize(2*n,1);
-  std::vector<int> weights;
-}
 
-void undistortPoint(Vector2f inputPoint, Vector2f& outputPoint, float f, float k1,float k2)
+void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double cy, double f, double k1,double k2)
 {
   float x = inputPoint(0);
   float y = inputPoint(1);
 
-  Vector2f pw(x/f, y/f);
+  Vector2d pw(x/f, y/f);
   double scale = 1.0;
 
   double theta_d = sqrt(pw(0)* pw(0) + pw(1)*pw(1));
@@ -107,14 +88,13 @@ void undistortPoint(Vector2f inputPoint, Vector2f& outputPoint, float f, float k
         break;
       }
     }
-    scale = tan(theta)/theta_d;
-
+    scale = std:: tan(theta)/theta_d;
     outputPoint = pw * scale;
-
-
   }
-
-
+  else
+  {
+    print("no distortion??");
+  }
 }
 
 bool TriangulateNViewAlgebraic
@@ -165,7 +145,7 @@ bool TriangulateNViewAlgebraic
   return eigen_solver.info() == Success;
 }
 */
-void computeProjectionMatrix(const Matrix3f& R, const Vector3f& t, Matrix<float,3,4>& P)
+void computeProjectionMatrix(const Matrix3d& R, const Vector3d& t, Matrix<double,3,4>& P)
 {
   P << R, t;
 }

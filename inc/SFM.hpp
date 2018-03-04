@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 #include <ctime>
+#include <assert.h>
 #include "Eigen/Core"
 
 #include "definitions.hpp"
@@ -23,11 +24,11 @@ class SFM
     void writePLY(string outputFile);
     void writePLYComparison(string outputFile);
     void writePLYGT(string outputFile);
-
+    void drawCameras(string outputFile);
   private:
-
+    bool _debug = false;
     void populateImages();
-    void populateImage(int id, Image& im);
+    void populateImage(Image& im);
 
     void populateTracks();
     void populateTrack(ifstream& bundleFile);
@@ -44,8 +45,8 @@ class SFM
     ImagesVec _images;
     Tracks _tracks;
 
-    Matrix<float,Dynamic,6> _cloudPoint;
-    Matrix<float,Dynamic,6> _cloudPointGT;
+    Matrix<double,Dynamic,6> _cloudPoint;
+    Matrix<double,Dynamic,6> _cloudPointGT;
 
 
 };

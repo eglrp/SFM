@@ -21,12 +21,14 @@ SFM::SFM(string datasetFolder, string inputImagesFile)
   print("Reading images from " << _listOfImages);
   print("");
 
+
   clock_t begin,end;
   begin = clock();
   print("Populating images");
   populateImages();
   end = clock();
   print(_images.size() << " images created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
+  assert(false);
 
   begin = clock();
   print("Populating tracks");
@@ -80,8 +82,8 @@ void SFM::populateImages()
       {
         Image im;
         im.id = id;
-        populateImage(id,im);
         im.name = inputImage;
+        populateImage(im);
         _images.push_back(im);
         _imageIDs.push_back(id);
       }
@@ -91,9 +93,9 @@ void SFM::populateImages()
 
 }
 
-void SFM::populateImage(int id, Image& im)
+void SFM::populateImage(Image& im)
 {
-  int startingLine = 5 * id + 2; //5 lines per camera + 2 from the header
+  int startingLine = 5 * im.id + 2; //5 lines per camera + 2 from the header
   ifstream bundleFile (_bundleFile.c_str());
   string line;
   if(bundleFile.is_open())
@@ -136,6 +138,17 @@ void SFM::populateImage(int id, Image& im)
     print("Could not open file " + _bundleFile);
   }
 
+  if(_debug)
+  {
+
+    print("Image " << im.name << " read. (" << im.id <<")" )
+    print("lines from " << 3 + 5*im.id << " to " << 7 + 5*im.id );
+    print("f,k1,k2: " << im.f << "," << im.k1 << "," << im.k2);
+    print("R:");
+    print(im.R);
+    print("t: " << im.t.transpose());
+  }
+
 }
 
 void SFM::populateTracks()
@@ -147,6 +160,7 @@ void SFM::populateTracks()
     int nCameras, nPoints;
     //Read the header
     getline(bundleFile,line);
+    //Read the number of cameras & points
     getline(bundleFile,line);
     istringstream in;
 
@@ -162,14 +176,27 @@ void SFM::populateTracks()
     for(int iPoint = 0; iPoint < nPoints; iPoint++)
     {
       populateTrack(bundleFile);
+      if(_debug)
+      {
+        _tracks.back().printTrack();
+      }
+      if(iPoint == -1)
+      {
+        break;
+      }
     }
+
+    bundleFile.close();
+  }
+  else
+  {
+    print("Could not open " + _bundleFile);
   }
 }
 
 void SFM::populateTrack(ifstream& openFile)
 {
-
-  Eigen::Vector3f groundTruth;
+  Eigen::Vector3d groundTruth;
   Eigen::Vector3i color;
   Occurrences occurrences;
 
@@ -191,13 +218,13 @@ void SFM::populateTrack(ifstream& openFile)
   for(int iPoint = 0; iPoint < nPoints; iPoint++)
   {
     int cameraKey, kpKey;
-    float x, y;
+    double x, y;
     pos >> cameraKey >> kpKey >> x >> y;
     if(find(_imageIDs.begin(),_imageIDs.end(),cameraKey) != _imageIDs.end())
     {
       KeyPoint kp;
       kp.first  = cameraKey;
-      kp.second = Eigen::Vector2f(x,y);
+      kp.second = Eigen::Vector2d(x,y);
       occurrences.push_back(kp);
     }
   }
@@ -205,7 +232,6 @@ void SFM::populateTrack(ifstream& openFile)
   if(occurrences.size() > 1)
   {
     Track track;
-    track.id = 0;
     track.groundTruth = groundTruth;
     track.color = color;
     track.occurrences = occurrences;
@@ -217,11 +243,7 @@ void SFM::populateTrack(ifstream& openFile)
 
 void SFM::computeSFM()
 {
-  if(_tracks.size() < 1 || _images.size() < 2)
-  {
-    print("Error, insufficient images to perform SFM. Aborting.");
-    return;
-  }
+  assert(_tracks.size() < 1 || _images.size() < 2);
 
   _cloudPoint.resize(_tracks.size(),6);
   _cloudPointGT.resize(_tracks.size(),6);
@@ -230,10 +252,9 @@ void SFM::computeSFM()
   int i = 0;
   for(auto track:_tracks)
   {
-
     Vector3d X = triangulateTrackDLT(track, _images);
-    Vector3f color = track.color.cast<float>();
-    Vector3f GT = track.groundTruth;
+    Vector3d color = track.color.cast<double>();
+    Vector3d GT = track.groundTruth;
     _cloudPoint(i,0) = X(0);
     _cloudPoint(i,1) = X(1);
     _cloudPoint(i,2) = X(2);
@@ -348,4 +369,34 @@ void SFM::writePLY(string outputFile)
     print("Unable to open file " + outputFile);
   }
 
+}
+
+void SFM::drawCameras(string outputFile)
+{
+  ofstream myfile (outputFile);
+  if(myfile.is_open())
+  {
+    // Write header:
+    myfile << "ply\n";
+    myfile << "format ascii 1.0\n";
+    myfile << "element vertex " << _images.size() << "\n";
+    myfile << "property float32 x\n";
+    myfile << "property float32 y\n";
+    myfile << "property float32 z\n";
+    myfile << "property uchar red\n";
+    myfile << "property uchar green\n";
+    myfile << "property uchar blue\n";
+    myfile << "end_header\n";
+    for(int i = 0; i < _images.size();i++)
+    {
+      myfile << _images[i].t(0) << " " << _images[i].t(1) << " " << _images[i].t(2) << " ";
+       myfile << 255 << " " << 0 << " " << 0 <<  "\n";
+    }
+    myfile.close();
+    print("Cloudpoint saved to " + outputFile);
+  }
+  else
+  {
+    print("Unable to open file " + outputFile);
+  }
 }

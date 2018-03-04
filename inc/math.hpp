@@ -4,7 +4,7 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 
-#include <assert.h> 
+#include <assert.h>
 #include "ceres/ceres.h"
 #include <algorithm>
 #include <math.h>
@@ -18,11 +18,11 @@ Vec3 triangulateTrackDLT(const Track& track, const ImagesVec& images);
 
 void IterativeLinearLSTriangulation(const Track& track, const ImagesVec& images);
 
-void undistortPoint(Vector2f inputPoint, Vector2f& outputPoint, float f, float k1,float k2);
+void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double cy, double f, double k1,double k2);
 
-void computeProjectionMatrix(const Eigen::Matrix3f& R,
-  const Eigen::Vector3f& t,
-  Eigen::Matrix<float, 3,4>& P);
+void computeProjectionMatrix(const Eigen::Matrix3d& R,
+  const Eigen::Vector3d& t,
+  Eigen::Matrix<double, 3,4>& P);
 
 void triangulateCERES(Tracks& tracks, ImagesVec& images);
 

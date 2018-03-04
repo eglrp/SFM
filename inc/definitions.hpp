@@ -23,8 +23,8 @@ struct Image
   double k1;
   double k2;
 
-  Eigen::Matrix3f R;
-  Eigen::Vector3f t;
+  Eigen::Matrix3d R;
+  Eigen::Vector3d t;
 
   void printImage()
   {
@@ -42,21 +42,19 @@ struct Image
 };
 
 typedef vector< Image > ImagesVec;
-typedef pair<int, Eigen::Vector2f> KeyPoint;
+typedef pair<int, Eigen::Vector2d> KeyPoint;
 typedef vector< KeyPoint  > Occurrences;
 
 struct Track
 {
-  int id;
-  Eigen::Vector3f groundTruth;
-  Eigen::Vector3f position3D;
+  Eigen::Vector3d groundTruth;
   Eigen::Vector3i color;
   Occurrences occurrences;
   int nPoints;
   void printTrack()
   {
     print("GT: " << groundTruth.transpose());
-    print("Color: " << color);
+    print("Color: " << color.transpose());
     print("number of points: " << occurrences.size());
     for(auto el: occurrences)
     {
