@@ -17,4 +17,7 @@ void computeProjectionMatrix(const Eigen::Matrix3f& R,
   const Eigen::Vector3f& t,
   Eigen::Matrix<float, 3,4>& P);
 
+void triangulateCERES(Tracks& tracks, ImagesVec& images);
+
+
 #endif

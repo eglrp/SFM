@@ -81,6 +81,7 @@ void SFM::populateImages()
         Image im;
         im.id = id;
         populateImage(id,im);
+        im.name = inputImage;
         _images.push_back(im);
         _imageIDs.push_back(id);
       }
@@ -144,14 +145,16 @@ void SFM::populateTracks()
   if(bundleFile.is_open())
   {
     int nCameras, nPoints;
+    //Read the header
     getline(bundleFile,line);
     getline(bundleFile,line);
     istringstream in;
 
     in.str(line);
     in >> nCameras >> nPoints;
+    int startingLine = 5 * nCameras; //5 lines per camera
     // Read the bundle until the points.
-    for(int lineNumber = 0; lineNumber < 5 * nCameras; lineNumber++)
+    for(int lineNumber = 0; lineNumber < startingLine; lineNumber++)
     {
       getline(bundleFile,line);
     }

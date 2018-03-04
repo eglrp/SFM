@@ -4,13 +4,17 @@
 #include <vector>
 #include <Eigen/Core>
 #include <iostream>
+#include <string>
 
-#define print(x) std::cout << x << std::endl;
+using namespace std;
+
+#define print(x) cout << x << endl;
 
 //typedef std::vector < Point > PointSet;
 
 struct Image
 {
+  string name;
   int id;
   int w;
   int h;
@@ -30,15 +34,16 @@ struct Image
     print("k2: " << k2);
     print("R: " << R);
     print("t: " << t);
+    print("name:" << name);
 
   }
 
 
 };
 
-typedef std::vector< Image > ImagesVec;
-typedef std::pair<int, Eigen::Vector2f> KeyPoint;
-typedef std::vector< KeyPoint  > Occurrences;
+typedef vector< Image > ImagesVec;
+typedef pair<int, Eigen::Vector2f> KeyPoint;
+typedef vector< KeyPoint  > Occurrences;
 
 struct Track
 {
@@ -62,6 +67,6 @@ struct Track
 
 };
 
-typedef std::vector< Track > Tracks;
+typedef vector< Track > Tracks;
 
 #endif

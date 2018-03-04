@@ -1,30 +1,13 @@
 #include "math.hpp"
 
-template<typename matrix_t, typename vector_t>
-void solveNullspaceLU(const matrix_t& A, vector_t& x){
-    x = A.fullPivLu().kernel();
-    x.normalize();
-}
-
-template<typename matrix_t, typename vector_t>
-void solveNullspaceQR(const matrix_t& A, vector_t& x){
-    auto qr = A.transpose().colPivHouseholderQr();
-    matrix_t Q = qr.householderQ();
-    x = Q.col(A.rows() - 1);
-    x.normalize();
-}
-template<typename matrix_t, typename vector_t>
-void solveNullspaceSVD(const matrix_t& A, vector_t& x){
-    x = A.jacobiSvd(Eigen::ComputeFullV).matrixV().col( A.rows() - 1 );
-    x.normalize();
-}
 
 void triangulateTrackDLT(const Track& track, const ImagesVec& images)
 {
   int n = track.nPoints;
-  Matrix<float,Dynamic,4> A;
-  int nEqs = 2;
-  A.resize(nEqs*n,4);
+  Matrix<float,Dynamic,3> A;
+  Matrix<float,Dynamic,1> B;
+  A.resize(2*n,3);
+  B.resize(2*n,1);
 
   int i = 0;
   for(auto el:track.occurrences)
@@ -34,7 +17,6 @@ void triangulateTrackDLT(const Track& track, const ImagesVec& images)
     float y = el.second(1);
 
     // Look for image:
-
     // predicate to find the right camera
     auto pred = [camKey](const Image& im)
     {
@@ -45,36 +27,42 @@ void triangulateTrackDLT(const Track& track, const ImagesVec& images)
     Matrix<float,3,4> P;
     computeProjectionMatrix(it->R,it->t, P);
 
-    RowVector4f p1,p2,p3;
-    p1 = P.row(0);
-    p2 = P.row(1);
-    p3 = P.row(2);
 
-    p1 = p1.normalized();
-    p2 = p2.normalized();
-    p3 = p3.normalized();
+    float f = it->f;
+    float k1 = it->k1;
+    float k2 = it->k2;
 
-    A.row(nEqs*i + 0) = x*p3 - p1;
-    A.row(nEqs*i + 1) = y*p3 - p2;
-    if(nEqs == 3)
-    {
-      A.row(nEqs*i + 2) = x*p2 - y*p1;
-    }
+    float r2 = x*x + y*y;
+    float r4 = r2 * r2;
+
+    float distortion = 1.0 + k1 * r2 + k2 *r4;
+
+    x = f * distortion * x;
+    y = f * distortion * y;
+
+
+
+    RowVector4f p0,p1,p2;
+    p0 = P.row(0);
+    p1 = P.row(1);
+    p2 = P.row(2);
+
+
+    A.row(2*i + 0) = Vector3f(x*p2(0) - p0(0), x*p2(1) - p0(1),x*p2(2) - p0(2));
+    B(2*i + 0) = x*p2(3) - p0(3);
+    A.row(2*i + 1) = Vector3f(y*p2(0) - p1(0), y*p2(1) - p1(1),y*p2(2) - p1(2));
+    B(2*i + 1) = y*p2(3) - p1(3);
+
     i++;
-
   }
+  // Solve by the Linear-LS method X = (x,y,z,1), non-homogeneous system
 
-  VectorXf resSVD,resQR,resLU;
-  solveNullspaceSVD(A,resSVD);
-  solveNullspaceQR(A,resQR);
-  solveNullspaceLU(A,resLU);
+  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+  Vector3f sol = svd.solve(B);
+  sol = sol.normalized();
 
-  print(resSVD.normalized());
-  print(resQR.normalized());
-  print(resLU.normalized());
-
-  print(track.groundTruth.transpose() );
-
+  print(sol.transpose());
+  print(track.groundTruth.transpose());
 
 }
 
