@@ -11,6 +11,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # required libraries
 find_package(Eigen3 REQUIRED)
+find_package(Ceres REQUIRED)
+
 #find_package(Boost COMPONENTS system thread)
 
 set(CMAKE_CXX_FLAGS
@@ -22,6 +24,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/inc
   ${PROJECT_SOURCE_DIR}/src
   ${EIGEN3_INCLUDE_DIR}
+  ${CERES_INCLUDE_DIRS}
 )
 
 
@@ -36,4 +39,4 @@ add_executable(SFM ${PROJECT_SOURCE_DIR}/test.cpp)
 
 target_link_libraries(SFM
                       SFM_libs
-                      ${OpenCV_LIBS})
+                      ${CERES_LIBRARIES})

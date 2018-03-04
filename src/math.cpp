@@ -1,5 +1,23 @@
 #include "math.hpp"
 
+template<typename matrix_t, typename vector_t>
+void solveNullspaceLU(const matrix_t& A, vector_t& x){
+    x = A.fullPivLu().kernel();
+    x.normalize();
+}
+
+template<typename matrix_t, typename vector_t>
+void solveNullspaceQR(const matrix_t& A, vector_t& x){
+    auto qr = A.transpose().colPivHouseholderQr();
+    matrix_t Q = qr.householderQ();
+    x = Q.col(A.rows() - 1);
+    x.normalize();
+}
+template<typename matrix_t, typename vector_t>
+void solveNullspaceSVD(const matrix_t& A, vector_t& x){
+    x = A.jacobiSvd(Eigen::ComputeFullV).matrixV().col( A.rows() - 1 );
+    x.normalize();
+}
 
 void triangulateTrackDLT(const Track& track, const ImagesVec& images)
 {
@@ -27,10 +45,14 @@ void triangulateTrackDLT(const Track& track, const ImagesVec& images)
     Matrix<float,3,4> P;
     computeProjectionMatrix(it->R,it->t, P);
 
-    Vector4f p1,p2,p3;
+    RowVector4f p1,p2,p3;
     p1 = P.row(0);
     p2 = P.row(1);
     p3 = P.row(2);
+
+    p1 = p1.normalized();
+    p2 = p2.normalized();
+    p3 = p3.normalized();
 
     A.row(nEqs*i + 0) = x*p3 - p1;
     A.row(nEqs*i + 1) = y*p3 - p2;
@@ -39,33 +61,24 @@ void triangulateTrackDLT(const Track& track, const ImagesVec& images)
       A.row(nEqs*i + 2) = x*p2 - y*p1;
     }
     i++;
+
   }
 
-  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
-  Vector3f rhs(0.0000000001,0,0);
+  VectorXf resSVD,resQR,resLU;
+  solveNullspaceSVD(A,resSVD);
+  solveNullspaceQR(A,resQR);
+  solveNullspaceLU(A,resLU);
 
-  MatrixXf V = svd.matrixV();
-  print(V);
-  VectorXf result = V.rightCols(1);
-  RowVectorXf result2 = V.bottomRows(1);
-  MatrixXf result3 = svd.solve(rhs);
-  result3 = result3 / result3(3);
+  print(resSVD.normalized());
+  print(resQR.normalized());
+  print(resLU.normalized());
 
-  print("");
-  print(V);
-  print("");
-
-
-  print(result);
-  print("");
-  print(result2);
-  print("");
-  print(result3);
-  print("");
-  print(track.groundTruth);
+  print(track.groundTruth.transpose() );
 
 
 }
+
+
 
 void computeProjectionMatrix(const Matrix3f& R, const Vector3f& t, Matrix<float,3,4>& P)
 {

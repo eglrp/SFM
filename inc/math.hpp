@@ -5,6 +5,7 @@
 #include <Eigen/SVD>
 #include "definitions.hpp"
 
+#include "ceres/ceres.h"
 #include <algorithm>
 
 using namespace Eigen;
