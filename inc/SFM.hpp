@@ -26,7 +26,8 @@ class SFM
     void writePLYGT(string outputFile);
     void drawCameras(string outputFile);
   private:
-    bool _debug = false;
+    bool _debugImages = true;
+    bool _debugTracks = false;
     void populateImages();
     void populateImage(Image& im);
 

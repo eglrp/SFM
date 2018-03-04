@@ -138,9 +138,8 @@ void SFM::populateImage(Image& im)
     print("Could not open file " + _bundleFile);
   }
 
-  if(_debug)
+  if(_debugImages)
   {
-
     print("Image " << im.name << " read. (" << im.id <<")" )
     print("lines from " << 3 + 5*im.id << " to " << 7 + 5*im.id );
     print("f,k1,k2: " << im.f << "," << im.k1 << "," << im.k2);
@@ -176,7 +175,7 @@ void SFM::populateTracks()
     for(int iPoint = 0; iPoint < nPoints; iPoint++)
     {
       populateTrack(bundleFile);
-      if(_debug)
+      if(_debugTracks)
       {
         _tracks.back().printTrack();
       }
