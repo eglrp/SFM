@@ -55,18 +55,24 @@ struct Track
   int nPoints;
   void printTrack()
   {
-    print("GT: " << groundTruth);
+    print("GT: " << groundTruth.transpose());
     print("Color: " << color);
     print("number of points: " << occurrences.size());
     for(auto el: occurrences)
     {
-      print("camkey:" << el.first);
-      print("Position:" << el.second);
+      print("camkey:" << el.first << ". Position:" << el.second(0) << "," <<el.second(1));
     }
   }
 
 };
 
 typedef vector< Track > Tracks;
+
+
+using Mat3X = Eigen::Matrix<double, 3, Eigen::Dynamic>;
+using Mat34 = Eigen::Matrix<double, 3, 4>;
+using Vec4 = Eigen::Vector4d;
+using Vec3 = Eigen::Vector3d;
+using Mat4 = Eigen::Matrix<double, 4, 4>;
 
 #endif

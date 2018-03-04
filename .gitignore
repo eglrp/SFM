@@ -11,3 +11,4 @@ SFM.project
 SFM.workspace
 .codelite
 lib
+*.ply

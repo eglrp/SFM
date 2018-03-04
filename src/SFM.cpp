@@ -215,15 +215,137 @@ void SFM::populateTrack(ifstream& openFile)
   return;
 }
 
-
 void SFM::computeSFM()
 {
-  if(_tracks.size() < 2 || _images.size() < 2)
+  if(_tracks.size() < 1 || _images.size() < 2)
   {
     print("Error, insufficient images to perform SFM. Aborting.");
     return;
   }
 
-  triangulateTrackDLT(_tracks[0], _images);
+  _cloudPoint.resize(_tracks.size(),6);
+  _cloudPointGT.resize(_tracks.size(),6);
+  clock_t begin,end;
+  begin = clock();
+  int i = 0;
+  for(auto track:_tracks)
+  {
+
+    Vector3d X = triangulateTrackDLT(track, _images);
+    Vector3f color = track.color.cast<float>();
+    Vector3f GT = track.groundTruth;
+    _cloudPoint(i,0) = X(0);
+    _cloudPoint(i,1) = X(1);
+    _cloudPoint(i,2) = X(2);
+    _cloudPoint(i,3) = color(0);
+    _cloudPoint(i,4) = color(1);
+    _cloudPoint(i,5) = color(2);
+
+    _cloudPointGT(i,0) = GT(0);
+    _cloudPointGT(i,1) = GT(1);
+    _cloudPointGT(i,2) = GT(2);
+    _cloudPointGT(i,3) = color(0);
+    _cloudPointGT(i,4) = color(1);
+    _cloudPointGT(i,5) = color(2);
+    i++;
+  }
+  end = clock();
+  print("Reconstruction done. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
+}
+
+void SFM::writePLYGT(string outputFile)
+{
+  ofstream myfile (outputFile);
+  if(myfile.is_open())
+  {
+    // Write header:
+    myfile << "ply\n";
+    myfile << "format ascii 1.0\n";
+    myfile << "element vertex " << _tracks.size() << "\n";
+    myfile << "property float32 x\n";
+    myfile << "property float32 y\n";
+    myfile << "property float32 z\n";
+    myfile << "property uchar red\n";
+    myfile << "property uchar green\n";
+    myfile << "property uchar blue\n";
+    myfile << "end_header\n";
+
+    for(int i = 0; i < _cloudPointGT.rows();i++)
+    {
+      myfile << _cloudPointGT(i,0) << " " << _cloudPointGT(i,1) << " " << _cloudPointGT(i,2) << " ";
+       myfile << _cloudPointGT(i,3) << " " << _cloudPointGT(i,4) << " " << _cloudPointGT(i,5) << "\n";
+    }
+    myfile.close();
+    print("Cloudpoint saved to " + outputFile);
+  }
+  else
+  {
+    print("Unable to open file " + outputFile);
+  }
+}
+
+void SFM::writePLYComparison(string outputFile)
+{
+  ofstream myfile (outputFile);
+  if(myfile.is_open())
+  {
+    // Write header:
+    myfile << "ply\n";
+    myfile << "format ascii 1.0\n";
+    myfile << "element vertex " << 2 * _tracks.size() << "\n";
+    myfile << "property float32 x\n";
+    myfile << "property float32 y\n";
+    myfile << "property float32 z\n";
+    myfile << "property uchar red\n";
+    myfile << "property uchar green\n";
+    myfile << "property uchar blue\n";
+    myfile << "end_header\n";
+    for(int i = 0; i < _cloudPoint.rows();i++)
+    {
+      myfile << _cloudPoint(i,0) << " " << _cloudPoint(i,1) << " " << _cloudPoint(i,2) << " ";
+       myfile << 0 << " " << 0 << " " << 255 << "\n";
+    }
+    for(int i = 0; i < _cloudPointGT.rows();i++)
+    {
+      myfile << _cloudPointGT(i,0) << " " << _cloudPointGT(i,1) << " " << _cloudPointGT(i,2) << " ";
+       myfile << 0 << " " << 255 << " " << 0 << "\n";
+    }
+    myfile.close();
+    print("Cloudpoint saved to " + outputFile);
+  }
+  else
+  {
+    print("Unable to open file " + outputFile);
+  }
+}
+
+void SFM::writePLY(string outputFile)
+{
+  ofstream myfile (outputFile);
+  if(myfile.is_open())
+  {
+    // Write header:
+    myfile << "ply\n";
+    myfile << "format ascii 1.0\n";
+    myfile << "element vertex " << _tracks.size() << "\n";
+    myfile << "property float32 x\n";
+    myfile << "property float32 y\n";
+    myfile << "property float32 z\n";
+    myfile << "property uchar red\n";
+    myfile << "property uchar green\n";
+    myfile << "property uchar blue\n";
+    myfile << "end_header\n";
+    for(int i = 0; i < _cloudPoint.rows();i++)
+    {
+      myfile << _cloudPoint(i,0) << " " << _cloudPoint(i,1) << " " << _cloudPoint(i,2) << " ";
+       myfile << _cloudPoint(i,3) << " " << _cloudPoint(i,4) << " " << _cloudPoint(i,5) << "\n";
+    }
+    myfile.close();
+    print("Cloudpoint saved to " + outputFile);
+  }
+  else
+  {
+    print("Unable to open file " + outputFile);
+  }
 
 }

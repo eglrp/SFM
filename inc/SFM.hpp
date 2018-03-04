@@ -20,6 +20,9 @@ class SFM
   public:
     SFM(string datasetFolder, string inputImagesFile);
     void computeSFM();
+    void writePLY(string outputFile);
+    void writePLYComparison(string outputFile);
+    void writePLYGT(string outputFile);
 
   private:
 
@@ -28,6 +31,7 @@ class SFM
 
     void populateTracks();
     void populateTrack(ifstream& bundleFile);
+
 
     vector<int> _imageIDs;
 
@@ -39,6 +43,9 @@ class SFM
 
     ImagesVec _images;
     Tracks _tracks;
+
+    Matrix<float,Dynamic,6> _cloudPoint;
+    Matrix<float,Dynamic,6> _cloudPointGT;
 
 
 };
