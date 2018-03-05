@@ -109,16 +109,54 @@ int main(int argc, char** argv)
   track.nPoints = 2;
   track.occurrences = occurrences;
 
-  // We can triangulate by passing our track and our images.
   Vec3 output = triangulateTrackDLT(track,images);
 
+  // We can project all the points (the GT in this case to check) to a single camera plane
+  // Image boundaries are not checked
+  SFM* sfmProjection = new SFM(datasetFolder,imagesList, bundleFile);
 
-  // Create a SFM pipeline with a known dataset.
+
+  Image im = sfmProjection->getImages()[0];
+  Tracks tracks = sfmProjection->getTracks();
+
+  Matrix<double,Dynamic,6> cloudPoint;
+  cloudPoint.resize(tracks.size(),6);
+  Matrix3d R_ = im.R;
+  Vector3d t_ = im.t;
+
+  //Define intrinsics parameters
+  double f_ = im.f;
+  double k1_ = im.k1;
+  double k2_ = im.k2;
+
+  int j = 0;
+  for(auto el: tracks)
+  {
+    Vector4d X_(el.groundTruth(0),el.groundTruth(1),el.groundTruth(2),1);
+    Vector3d color = el.color.cast<double>();
+    Vector2d pixelCoordsCam;
+    project3DPointToPixel(X,pixelCoordsCam,R_,t_,f_,k1_,k2_);
+    cloudPoint(j,0) = X_(0);
+    cloudPoint(j,1) = X_(1);
+    cloudPoint(j,2) = 1;
+    cloudPoint(j,3) = color(0);
+    cloudPoint(j,4) = color(1);
+    cloudPoint(j,5) = color(2);
+    j++;
+  }
+  sfmProjection->setCloudPoint(cloudPoint);
+  sfmProjection->writePLY("projectionTest.ply");
+
+  print("")
+  print("")
+
+// We can triangulate by passing our track and our images.
+// Create a SFM pipeline with a known dataset.
   SFM* sfm = new SFM(datasetFolder,imagesList, bundleFile);
 
   sfm->computeSFM();
-  print(sfm->reprojectionError());
-  print(sfm->GTError());
+  print("Reconstruction error: " << sfm->reprojectionError());
+  print("GT error: " << sfm->GTError());
 
   sfm->writePLY("output.ply");
   sfm->writePLYGT("GT.ply");

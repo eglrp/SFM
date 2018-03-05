@@ -46,7 +46,7 @@ void computeProjectionMatrix(const Eigen::Matrix3d& R,
 void triangulateCERES(Tracks& tracks, ImagesVec& images);
 
 // Calculates the reprojection error for a track.
-double calculateReprojectionError(const Track& track, const ImagesVec& images);
+double calculateReprojectionError(Track& track, ImagesVec& images);
 
 // Triangulates N views
 bool TriangulateNViewAlgebraic

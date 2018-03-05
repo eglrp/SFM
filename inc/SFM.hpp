@@ -42,13 +42,23 @@ class SFM
     double reprojectionError();
     // Calculate the reprojection error for the Noah Bundler data
     double GTError();
+    // Type of triangulation:
+    // 1: non homogeneous
+    // 0: Algebraic (from OpenMVG)
+    int triangulation;
+
+    ImagesVec getImages();
+    Tracks getTracks();
+
+    void setCloudPoint(Matrix<double,Dynamic,6> cloudPoint);
+
   private:
     // Enable to verbose the Images and Tracks creation
     bool _debugImages = false;
     bool _debugTracks = false;
     // Creates the images vector.
     void populateImages();
-    // Populates a Image from the Noah Bundler camera info. The Image needs a 
+    // Populates a Image from the Noah Bundler camera info. The Image needs a
     // valid ID beforehand.
     void populateImage(Image& im);
 

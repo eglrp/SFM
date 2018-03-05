@@ -22,6 +22,7 @@ SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
   print("Reading images from " << _listOfImages);
   print("");
 
+  triangulation = 1;
 
   clock_t begin,end;
   begin = clock();
@@ -35,6 +36,19 @@ SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
   populateTracks();
   end = clock();
   print(_tracks.size() << " tracks created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
+}
+ImagesVec SFM::getImages()
+{
+  return _images;
+}
+Tracks SFM::getTracks()
+{
+  return _tracks;
+}
+
+void SFM::setCloudPoint(Matrix<double,Dynamic,6> cloudPoint)
+{
+  _cloudPoint = cloudPoint;
 }
 
 void SFM::populateImages()
@@ -74,24 +88,21 @@ void SFM::populateImages()
   }
 
 
-  for(auto inputImage : inputImages)
+  for(int iInputImage = 0; iInputImage < inputImages.size(); iInputImage++)
   {
-    int id = 0;
-    for(auto el : allImages)
+    for(int iAllImages = 0; iAllImages < allImages.size(); iAllImages++)
     {
-      if( inputImage == el)
+      if( inputImages[iInputImage] == allImages[iAllImages])
       {
         Image im;
-        im.id = id;
-        im.name = inputImage;
+        im.id = iAllImages;
+        im.name = inputImages[iInputImage];
         populateImage(im);
         _images.push_back(im);
-        _imageIDs.push_back(id);
+        _imageIDs.push_back(iAllImages);
       }
-      id++;
     }
   }
-
 }
 
 void SFM::populateImage(Image& im)
@@ -249,12 +260,12 @@ void SFM::computeSFM()
   _cloudPointGT.resize(_tracks.size(),6);
   clock_t begin,end;
   begin = clock();
-  int i = 0;
-  for(auto track:_tracks)
+
+  for(int i = 0; i < _tracks.size(); i++)
   {
-    Vector3d X = triangulateTrackDLT(track, _images);
-    Vector3d color = track.color.cast<double>();
-    Vector3d GT = track.groundTruth;
+    Vector3d X = triangulateTrackDLT(_tracks[i], _images);
+    Vector3d color = _tracks[i].color.cast<double>();
+    Vector3d GT = _tracks[i].groundTruth;
     _cloudPoint(i,0) = X(0);
     _cloudPoint(i,1) = X(1);
     _cloudPoint(i,2) = X(2);
@@ -370,19 +381,18 @@ double SFM::reprojectionError()
 {
 
     double error = 0;
-    for(auto el : _tracks)
+    for(int i = 0; i < _tracks.size(); i++)
     {
-      error += calculateReprojectionError(el, _images);
+      error += calculateReprojectionError(_tracks[i], _images);
     }
-    return error;
+    return error/_tracks.size();
 }
 
 double SFM::GTError()
 {
-  double error = 0;
-  for(auto el : _tracks)
+  for(int i = 0; i < _tracks.size(); i++)
   {
-    el.worldPosition = el.groundTruth;
+    _tracks[i].worldPosition = _tracks[i].groundTruth;
   }
   return reprojectionError();
 }

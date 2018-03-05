@@ -1,6 +1,5 @@
 #include "math.hpp"
 
-
 Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
 {
   int nViews = track.nPoints;
@@ -58,15 +57,15 @@ void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
     // world to image coords
     Vector3d imageCoords = P * inputPoint;
     // Perspective division
-    imageCoords = -imageCoords / imageCoords(2);
+    imageCoords = - imageCoords / imageCoords(2);
     // Conversion to pixel coordinates:
     double x = imageCoords(0);
     double y = imageCoords(1);
     // Intrinsics parameters
     double p2 = (x*x + y*y);
     double p4 = p2*p2;
-    double distortion = (1 + k1*p2 + k2*p4);
-    // Final conversion
+    double distortion = (1.0 + k1*p2 + k2*p4);
+    // Final conversion, no need to add cx/cy as the reference is already centered
     outputPoint(0) = f * distortion * x;
     outputPoint(1) = f * distortion * y;
 }
@@ -137,16 +136,56 @@ bool TriangulateNViewAlgebraic
   *X = eigen_solver.eigenvectors().col(0);
   return eigen_solver.info() == Eigen::Success;
 }
+/*
+bool TriangulateNViewsNonHomogeneous
+(
+  const Mat3X & points,
+  const std::vector<Mat34>& poses,
+  Vec4* X
+)
+{
+  assert(poses.size() == points.cols());
 
-double calculateReprojectionError(const Track& track, const ImagesVec& images)
+  Matrix<double,Dynamic,3> A;
+  Matrix<double,Dynamic,1> B;
+
+  A.resize(2*poses.size(),3);
+  B.resize(2*poses.size(),1);
+
+  for(int i = 0; i < points.cols(); i++)
+  {
+    const Vec3 point = points.col(i);
+    double x = point(0);
+    double y = point(1);
+    double w = 1;
+
+    const Matrix<double,3,3> R = poses[i].block<3,3>(0,0);
+    const Matrix<double,3,1> t = poses[i].col(3);
+
+    RowVector3d p0 = R.row(0);
+    RowVector3d p1 = R.row(1);
+    RowVector3d p2 = R.row(2);
+
+    A.row(2*i + 0) = x * p2 - p0;
+    A.row(2*i + 1) = y * p2 - p1;
+
+    B(2*i +0) = x * t(2) - t(0);
+    B(2*i +0) = y * t(2) - t(1);
+  }
+  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+  MatrixXf sol = svd.solve(B);
+
+  X = Vec4(sol(0),sol(1),sol(2),sol(3));
+}*/
+
+double calculateReprojectionError(Track& track, ImagesVec& images)
 {
   double error = 0;
-  for(auto el: track.occurrences)
+  for(int iTrack = 0; iTrack < track.occurrences.size(); iTrack++)
   {
-    KeyPoint kp = el;
+    KeyPoint kp = track.occurrences[iTrack];
     int camKey = kp.first;
     Vector2d distorted = kp.second;
-
     // Look for image:
     // predicate to find the right camera
     auto pred = [camKey](const Image& im)
@@ -156,18 +195,17 @@ double calculateReprojectionError(const Track& track, const ImagesVec& images)
     auto it = find_if(begin(images),end(images),pred);
     assert(camKey == it->id);
 
+
     // Get R,t,and K:
     double f,k1,k2;
     f = it->f;
     k1 = it->k1;
     k2 = it->k2;
-
     // Get the pose:
     Matrix3d R = it->R;
     Vector3d t = it->t;
     Matrix<double,3,4> P;
     computeProjectionMatrix(R,t,P);
-
     //Vector4d X = track.worldPosition.homogeneous();
     Vector4d X = track.worldPosition.homogeneous();
     Vector2d pixelCoords;
@@ -177,7 +215,6 @@ double calculateReprojectionError(const Track& track, const ImagesVec& images)
     double dy = distorted(1) - pixelCoords(1);
 
     error += sqrt(dx*dx + dy*dy);
-
   }
   return error/track.nPoints;
 }
