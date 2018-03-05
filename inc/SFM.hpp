@@ -21,7 +21,10 @@ using namespace std;
 class SFM
 {
   public:
-    // SFM pipeline constructor:
+
+    //SFM pipeline constructor for custom points/cameras/images/correspondences
+    SFM();
+    // SFM pipeline constructor for Noah Bundler datasets.
     // Input parameters:
     // datasetFolder: the folder containing the bundle.out file and the list of
     // images
@@ -45,9 +48,13 @@ class SFM
     // Type of triangulation:
     // 1: non homogeneous
     // 0: Algebraic (from OpenMVG)
-    int triangulation;
+
+    void setImages(ImagesVec images);
 
     ImagesVec getImages();
+
+    void setTracks(Tracks tracks);
+
     Tracks getTracks();
 
     void setCloudPoint(Matrix<double,Dynamic,6> cloudPoint);

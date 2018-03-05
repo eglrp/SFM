@@ -115,7 +115,6 @@ int main(int argc, char** argv)
   // Image boundaries are not checked
   SFM* sfmProjection = new SFM(datasetFolder,imagesList, bundleFile);
 
-
   Image im = sfmProjection->getImages()[0];
   Tracks tracks = sfmProjection->getTracks();
 

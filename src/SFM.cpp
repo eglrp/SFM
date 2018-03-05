@@ -1,5 +1,10 @@
 #include "SFM.hpp"
 
+SFM::SFM()
+{
+
+}
+
 SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
 : _datasetFolder(datasetFolder),
  _inputImagesFile(inputImagesFile),
@@ -21,8 +26,6 @@ SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
   print("Reading bundle data from " << _bundleFile);
   print("Reading images from " << _listOfImages);
   print("");
-
-  triangulation = 1;
 
   clock_t begin,end;
   begin = clock();
@@ -395,4 +398,14 @@ double SFM::GTError()
     _tracks[i].worldPosition = _tracks[i].groundTruth;
   }
   return reprojectionError();
+}
+
+void SFM::setTracks(Tracks tracks)
+{
+  _tracks = tracks;
+}
+
+void SFM::setImages(ImagesVec images)
+{
+  _images = images;
 }
