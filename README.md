@@ -39,7 +39,7 @@ Run the binary located at bin/SFM, with the right
 ```
 Where the dataset Folder is the folder we just extracted, the inputImages is a .txt file with the relative path (from the file) to the images. Note that for it to work with a NoahBunlder dataset, the images have to be present at the list.txt located in the folder.
 
-To use custom data, first we create our camera poses and tracks (points present in more than one image):
+We can alsoo use custom data, but we need to create our camera poses and tracks (points present in more than one image):
 
 ```C++
 // Images and tracks can be created with ease:
