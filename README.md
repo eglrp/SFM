@@ -39,6 +39,54 @@ Run the binary located at bin/SFM, with the right
 ```
 Where the dataset Folder is the folder we just extracted, the inputImages is a .txt file with the relative path (from the file) to the images. Note that for it to work with a NoahBunlder dataset, the images have to be present at the list.txt located in the folder.
 
+To use custom data, first we create our camera poses and tracks (points present in more than one image):
+
+```C++
+// Images and tracks can be created with ease:
+  ImagesVec images(2);
+  images[0].id = 0;
+  images[1].id = 1;
+
+// Both cameras have the same direction
+  images[0].R = R;
+  images[1].R = R;
+  // But different location
+  images[0].t = Vector3d(-1,0,0);
+  images[1].t = Vector3d(1,0,0);
+
+  // Similar intrinsics
+  images[0].f = 500;
+  images[1].f = 700;
+
+  images[0].k1 = 0.01;
+  images[1].k1 = 0.1;
+
+  images[0].k2 = 0.1;
+  images[1].k2 = 0.01;
+
+  Vector2d pixelCoordsCam0(10,0);
+  Vector2d pixelCoordsCam1(0,10);
+
+  Occurrences occurrences(2);
+  occurrences[0] = KeyPoint(0,pixelCoordsCam0);
+  occurrences[1] = KeyPoint(1,pixelCoordsCam1);
+
+  Track track;
+
+  track.nPoints = 2;
+  track.occurrences = occurrences;
+  Tracks tracks(1);
+  tracks[0] = track;
+  
+  // We can then feed it to a SFM class:
+  SFM* sfm = new SFM()
+  sfm->setTracks(tracks);
+  sfm->setImages(images);
+  sfm->computeSFM();
+  // and save the output to a .PLY file
+  sfm->writePLY("output.ply");
+```
+
 ## Authors
 
 * **Alejandro Nespereira** -
