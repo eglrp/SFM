@@ -33,7 +33,7 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     double cx = 0,cy = 0; // Pixel positions are already counted from center
     Vector2d undistorted;
     undistortPoint(distorted, undistorted,cx,cy,f,k1,k2);
-    points.col(i) = undistorted.homogeneous();
+    points.col(i) = distorted.homogeneous();
 
     // Get the pose:
     Matrix3d R = it->R;

@@ -113,10 +113,10 @@ int main(int argc, char** argv)
 
   // We can project all the points (the GT in this case to check) to a single camera plane
   // Image boundaries are not checked
-  SFM* sfmProjection = new SFM(datasetFolder,imagesList, bundleFile);
+  SFM sfmProjection(datasetFolder,imagesList, bundleFile);
 
-  Image im = sfmProjection->getImages()[0];
-  Tracks tracks = sfmProjection->getTracks();
+  Image im = sfmProjection.getImages()[0];
+  Tracks tracks = sfmProjection.getTracks();
 
   Matrix<double,Dynamic,6> cloudPoint;
   cloudPoint.resize(tracks.size(),6);
@@ -134,31 +134,34 @@ int main(int argc, char** argv)
     Vector4d X_(el.groundTruth(0),el.groundTruth(1),el.groundTruth(2),1);
     Vector3d color = el.color.cast<double>();
     Vector2d pixelCoordsCam;
-    project3DPointToPixel(X,pixelCoordsCam,R_,t_,f_,k1_,k2_);
-    cloudPoint(j,0) = X_(0);
-    cloudPoint(j,1) = X_(1);
+    project3DPointToPixel(X_,pixelCoordsCam,R_,t_,f_,k1_,k2_);
+    Matrix<double,3,4> P;
+    computeProjectionMatrix(R_,t_,P);
+    Vector3d cameraCoords = P * X_;
+    cloudPoint(j,0) = pixelCoordsCam(0);
+    cloudPoint(j,1) = pixelCoordsCam(1);
     cloudPoint(j,2) = 1;
     cloudPoint(j,3) = color(0);
     cloudPoint(j,4) = color(1);
     cloudPoint(j,5) = color(2);
     j++;
   }
-  sfmProjection->setCloudPoint(cloudPoint);
-  sfmProjection->writePLY("projectionTest.ply");
+  sfmProjection.setCloudPoint(cloudPoint);
+  sfmProjection.writePLY("projectionTest.ply");
 
   print("")
   print("")
 
 // We can triangulate by passing our track and our images.
 // Create a SFM pipeline with a known dataset.
-  SFM* sfm = new SFM(datasetFolder,imagesList, bundleFile);
+  SFM sfm(datasetFolder,imagesList, bundleFile);
 
-  sfm->computeSFM();
-  print("Reconstruction error: " << sfm->reprojectionError());
-  print("GT error: " << sfm->GTError());
+  sfm.computeSFM();
+  print("Reconstruction error: " << sfm.reprojectionError());
+  print("GT error: " << sfm.GTError());
 
-  sfm->writePLY("output.ply");
-  sfm->writePLYGT("GT.ply");
-  sfm->drawCameras("cameras.ply");
+  sfm.writePLY("output.ply");
+  sfm.writePLYGT("GT.ply");
+  sfm.drawCameras("cameras.ply");
 
 }

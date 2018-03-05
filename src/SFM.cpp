@@ -127,7 +127,6 @@ void SFM::populateImage(Image& im)
 
     k.str(line);
     k >> im.f >> im.k1 >> im.k2;
-
     // Read R
     getline(bundleFile,line);
     r0.str(line);
@@ -368,7 +367,9 @@ void SFM::drawCameras(string outputFile)
     myfile << "end_header\n";
     for(int i = 0; i < _images.size();i++)
     {
-      myfile << _images[i].t(0) << " " << _images[i].t(1) << " " << _images[i].t(2) << " ";
+      Vector3d cameraPosition = - _images[i].R * _images[i].t;
+
+      myfile << cameraPosition(0) << " " << cameraPosition(1) << " " << cameraPosition(2) << " ";
        myfile << 255 << " " << 0 << " " << 0 <<  "\n";
     }
     myfile.close();
