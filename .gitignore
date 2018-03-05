@@ -10,5 +10,6 @@ CTestTestfile.cmake
 SFM.project
 SFM.workspace
 .codelite
-lib
 *.ply
+bin/
+lib/
