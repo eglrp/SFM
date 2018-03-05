@@ -120,6 +120,7 @@ void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double 
   }
 }
 
+
 bool TriangulateNViewAlgebraic
 (
   const Mat3X & points,
@@ -127,7 +128,8 @@ bool TriangulateNViewAlgebraic
   Vec4* X
 )
 {
-  assert(poses.size() == points.cols());
+
+ assert(poses.size() == points.cols());
 
   Mat4 AtA = Mat4::Zero();
   for (Mat3X::Index i = 0; i < points.cols(); ++i)
@@ -144,30 +146,49 @@ bool TriangulateNViewAlgebraic
   return eigen_solver.info() == Eigen::Success;
 }
 
-/*
-bool TriangulateNViewAlgebraic
-(
-  const Matrix<float, 3, 3> & points,
-  const std::vector<Matrix<float, 3, 4>>& poses,
-  Vector4f* X
-)
+double calculateReprojectionError(const Track& track, const ImagesVec& images)
 {
-  assert(poses.size() == points.cols());
-
-  Matrix4f AtA = Matrix4f::Zero();
-  for(Matrix3f::Index i = 0; i < points.cols(); ++i)
+  double error = 0;
+  for(auto el: track.occurrences)
   {
-    const Vector3f point_norm = points.col(i).normalized();
-    const Matrix<float,3,4> cost =
-      poses[i] -
-      point_norm * point_norm.transpose() * poses[i];
-    AtA += cost.transpose() * cost;
+    KeyPoint kp = el;
+    int camKey = kp.first;
+    Vector2d distorted = kp.second;
+
+    // Look for image:
+    // predicate to find the right camera
+    auto pred = [camKey](const Image& im)
+    {
+      return (im.id == camKey);
+    };
+    auto it = find_if(begin(images),end(images),pred);
+    assert(camKey == it->id);
+
+    // Get R,t,and K:
+    double f,k1,k2;
+    f = it->f;
+    k1 = it->k1;
+    k2 = it->k2;
+
+    // Get the pose:
+    Matrix3d R = it->R;
+    Vector3d t = it->t;
+    Matrix<double,3,4> P;
+    computeProjectionMatrix(R,t,P);
+
+    Vector4d X = track.worldPosition.homogeneous();
+    Vector2d pixelCoords;
+    project3DPointToPixel(X,pixelCoords,R,t,f,k1,k2);
+
+    double dx = distorted(0) - pixelCoords(0);
+    double dy = distorted(1) - pixelCoords(1);
+
+    error += sqrt(dx*dx + dy*dy);
+
   }
-  SelfAdjointEigenSolver<Matrix4f> eigen_solver(AtA);
-  *X = eigen_solver.eigenvectors().col(0);
-  return eigen_solver.info() == Success;
+  return error/track.nPoints;
 }
-*/
+
 void computeProjectionMatrix(const Matrix3d& R, const Vector3d& t, Matrix<double,3,4>& P)
 {
   P << R, t;

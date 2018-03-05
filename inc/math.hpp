@@ -31,6 +31,7 @@ void computeProjectionMatrix(const Eigen::Matrix3d& R,
 
 void triangulateCERES(Tracks& tracks, ImagesVec& images);
 
+double calculateReprojectionError(const Track& track, const ImagesVec& images);
 
 bool TriangulateNViewAlgebraic
 (

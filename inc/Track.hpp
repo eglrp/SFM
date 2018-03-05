@@ -19,6 +19,8 @@ class Track
     Track();
     Vector3d groundTruth;
     Vector3i color;
+    Vector3d worldPosition;
+    
     Occurrences occurrences;
     int nPoints;
     void printTrack();
