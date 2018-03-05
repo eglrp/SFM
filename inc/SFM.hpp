@@ -11,6 +11,8 @@
 #include "Eigen/Core"
 
 #include "definitions.hpp"
+#include "Track.hpp"
+#include "Image.hpp"
 #include "math.hpp"
 
 

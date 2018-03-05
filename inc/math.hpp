@@ -6,6 +6,8 @@
 
 #include <assert.h>
 #include "ceres/ceres.h"
+#include "Image.hpp"
+#include "Track.hpp"
 #include <algorithm>
 #include <math.h>
 
@@ -19,6 +21,9 @@ Vec3 triangulateTrackDLT(const Track& track, const ImagesVec& images);
 void IterativeLinearLSTriangulation(const Track& track, const ImagesVec& images);
 
 void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double cy, double f, double k1,double k2);
+
+void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
+  Matrix3d R, Vector3d t, double f, double k1, double k2);
 
 void computeProjectionMatrix(const Eigen::Matrix3d& R,
   const Eigen::Vector3d& t,
