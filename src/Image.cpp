@@ -1,5 +1,10 @@
 #include "Image.hpp"
 
+Image::Image()
+{
+
+}
+
 void Image::printImage()
 {
   print("id: " << id);

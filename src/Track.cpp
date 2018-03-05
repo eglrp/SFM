@@ -14,8 +14,3 @@ void Track::printTrack()
     print("camkey:" << el.first << ". Position:" << el.second(0) << "," <<el.second(1));
   }
 }
-
-double Track::reProjectionError()
-{
-
-}

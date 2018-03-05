@@ -17,14 +17,17 @@ class Track
 
   public:
     Track();
+    // the GT from the Noah Bundler
     Vector3d groundTruth;
+    // the color from the Noah Bundler
     Vector3i color;
+    // to be found
     Vector3d worldPosition;
-    
+
+    // Correspondences
     Occurrences occurrences;
     int nPoints;
     void printTrack();
-    double reProjectionError();
   private:
 
 };

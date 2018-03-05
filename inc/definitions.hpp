@@ -11,7 +11,7 @@ using namespace std;
 
 #define print(x) cout << x << endl;
 
-//typedef std::vector < Point > PointSet;
+// For ease of use
 
 using Mat3X = Eigen::Matrix<double, 3, Eigen::Dynamic>;
 using Mat34 = Eigen::Matrix<double, 3, 4>;

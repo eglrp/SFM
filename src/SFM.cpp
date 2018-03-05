@@ -1,20 +1,21 @@
 #include "SFM.hpp"
 
-SFM::SFM(string datasetFolder, string inputImagesFile)
-: _datasetFolder(datasetFolder), _inputImagesFile(inputImagesFile)
+SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
+: _datasetFolder(datasetFolder),
+ _inputImagesFile(inputImagesFile),
+ _bundleFile(bundleFile)
 {
-
   //TODO: make a regex here to get the bundle.out file (not always NotreDame).
   // In other words, unhardcode this. list.txt is fine, it's always the same name
   if( datasetFolder.back() == '/')
   {
     _listOfImages = datasetFolder + "list.txt";
-    _bundleFile = datasetFolder + "notredame.out";
+    //_bundleFile = datasetFolder + "notredame.out";
   }
   else
   {
     _listOfImages = datasetFolder + "/list.txt";
-    _bundleFile = datasetFolder + "/notredame.out";
+    //_bundleFile = datasetFolder + "/notredame.out";
   }
   print("Using images from " << _inputImagesFile);
   print("Reading bundle data from " << _bundleFile);
@@ -28,7 +29,6 @@ SFM::SFM(string datasetFolder, string inputImagesFile)
   populateImages();
   end = clock();
   print(_images.size() << " images created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
-  assert(false);
 
   begin = clock();
   print("Populating tracks");
@@ -39,6 +39,7 @@ SFM::SFM(string datasetFolder, string inputImagesFile)
 
 void SFM::populateImages()
 {
+
   vector< string > allImages, inputImages;
 
   string line;
@@ -304,41 +305,6 @@ void SFM::writePLYGT(string outputFile)
   }
 }
 
-void SFM::writePLYComparison(string outputFile)
-{
-  ofstream myfile (outputFile);
-  if(myfile.is_open())
-  {
-    // Write header:
-    myfile << "ply\n";
-    myfile << "format ascii 1.0\n";
-    myfile << "element vertex " << 2 * _tracks.size() << "\n";
-    myfile << "property float32 x\n";
-    myfile << "property float32 y\n";
-    myfile << "property float32 z\n";
-    myfile << "property uchar red\n";
-    myfile << "property uchar green\n";
-    myfile << "property uchar blue\n";
-    myfile << "end_header\n";
-    for(int i = 0; i < _cloudPoint.rows();i++)
-    {
-      myfile << _cloudPoint(i,0) << " " << _cloudPoint(i,1) << " " << _cloudPoint(i,2) << " ";
-       myfile << 0 << " " << 0 << " " << 255 << "\n";
-    }
-    for(int i = 0; i < _cloudPointGT.rows();i++)
-    {
-      myfile << _cloudPointGT(i,0) << " " << _cloudPointGT(i,1) << " " << _cloudPointGT(i,2) << " ";
-       myfile << 0 << " " << 255 << " " << 0 << "\n";
-    }
-    myfile.close();
-    print("Cloudpoint saved to " + outputFile);
-  }
-  else
-  {
-    print("Unable to open file " + outputFile);
-  }
-}
-
 void SFM::writePLY(string outputFile)
 {
   ofstream myfile (outputFile);
@@ -398,4 +364,25 @@ void SFM::drawCameras(string outputFile)
   {
     print("Unable to open file " + outputFile);
   }
+}
+
+double SFM::reprojectionError()
+{
+
+    double error = 0;
+    for(auto el : _tracks)
+    {
+      error += calculateReprojectionError(el, _images);
+    }
+    return error;
+}
+
+double SFM::GTError()
+{
+  double error = 0;
+  for(auto el : _tracks)
+  {
+    el.worldPosition = el.groundTruth;
+  }
+  return reprojectionError();
 }

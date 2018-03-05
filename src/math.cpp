@@ -1,7 +1,7 @@
 #include "math.hpp"
 
 
-Vec3 triangulateTrackDLT(const Track& track, const ImagesVec& images)
+Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
 {
   int nViews = track.nPoints;
 
@@ -45,15 +45,9 @@ Vec3 triangulateTrackDLT(const Track& track, const ImagesVec& images)
   }
   Vec4 X;
   bool success = TriangulateNViewAlgebraic(points.cast<double>(),poses, &X);
-  if(success)
-  {
   Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
+  track.worldPosition = sol;
   return sol;
-  }
-  else
-  {
-      return Vec3(X(0),X(1),X(2));
-  }
 }
 
 void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
@@ -63,25 +57,23 @@ void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
     computeProjectionMatrix(R,t,P);
     // world to image coords
     Vector3d imageCoords = P * inputPoint;
-    print(imageCoords.transpose());
     // Perspective division
     imageCoords = -imageCoords / imageCoords(2);
-    print(imageCoords.transpose());
     // Conversion to pixel coordinates:
     double x = imageCoords(0);
     double y = imageCoords(1);
+    // Intrinsics parameters
     double p2 = (x*x + y*y);
     double p4 = p2*p2;
-    print(p2);
-    print(p4);
     double distortion = (1 + k1*p2 + k2*p4);
-    print(distortion);
+    // Final conversion
     outputPoint(0) = f * distortion * x;
     outputPoint(1) = f * distortion * y;
 }
 
 void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double cy, double f, double k1,double k2)
 {
+  // Code "borrowed" from OpenCV library. No k3 or k4.
   float x = inputPoint(0);
   float y = inputPoint(1);
 
@@ -176,6 +168,7 @@ double calculateReprojectionError(const Track& track, const ImagesVec& images)
     Matrix<double,3,4> P;
     computeProjectionMatrix(R,t,P);
 
+    //Vector4d X = track.worldPosition.homogeneous();
     Vector4d X = track.worldPosition.homogeneous();
     Vector2d pixelCoords;
     project3DPointToPixel(X,pixelCoords,R,t,f,k1,k2);

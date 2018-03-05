@@ -15,16 +15,18 @@ class Image
 {
   public:
     Image();
+    // name of the image
     string name;
+    // id, the same as the line they appear in the list.txt
     int id;
-    int w;
-    int h;
+    // intrinsics
     double f;
     double k1;
     double k2;
+    // extrinsics
     Matrix3d R;
     Vector3d t;
-
+    // for debugg purposes
     void printImage();
 };
 
