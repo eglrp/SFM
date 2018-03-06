@@ -32,7 +32,7 @@ SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
   print("Populating images");
   populateImages();
   end = clock();
-  print(_images.size() << " images created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
+  print(_images.size() << " images created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC << " s.");
 
   begin = clock();
   print("Populating tracks");
@@ -60,7 +60,6 @@ void SFM::populateImages()
   vector< string > allImages, inputImages;
 
   string line;
-  //TODO: Create function to do this twice.
 
   ifstream inputImagesFile (_inputImagesFile.c_str());
   if( inputImagesFile.is_open())
@@ -110,6 +109,10 @@ void SFM::populateImages()
 
 void SFM::populateImage(Image& im)
 {
+  cv::Mat image = cv::imread(_datasetFolder +  im.name);
+  im.w = image.cols;
+  im.h = image.rows;
+
   int startingLine = 5 * im.id + 2; //5 lines per camera + 2 from the header
   ifstream bundleFile (_bundleFile.c_str());
   string line;
@@ -289,33 +292,11 @@ void SFM::computeSFM()
 
 void SFM::writePLYGT(string outputFile)
 {
-  ofstream myfile (outputFile);
-  if(myfile.is_open())
+  for(int iTrack = 0; iTrack < _tracks.size(); iTrack++)
   {
-    // Write header:
-    myfile << "ply\n";
-    myfile << "format ascii 1.0\n";
-    myfile << "element vertex " << _tracks.size() << "\n";
-    myfile << "property float32 x\n";
-    myfile << "property float32 y\n";
-    myfile << "property float32 z\n";
-    myfile << "property uchar red\n";
-    myfile << "property uchar green\n";
-    myfile << "property uchar blue\n";
-    myfile << "end_header\n";
-
-    for(int i = 0; i < _cloudPointGT.rows();i++)
-    {
-      myfile << _cloudPointGT(i,0) << " " << _cloudPointGT(i,1) << " " << _cloudPointGT(i,2) << " ";
-       myfile << _cloudPointGT(i,3) << " " << _cloudPointGT(i,4) << " " << _cloudPointGT(i,5) << "\n";
-    }
-    myfile.close();
-    print("Cloudpoint saved to " + outputFile);
+    _tracks[iTrack].worldPosition = _tracks[iTrack].groundTruth;
   }
-  else
-  {
-    print("Unable to open file " + outputFile);
-  }
+  writePLY(outputFile);
 }
 
 void SFM::writePLY(string outputFile)
@@ -326,7 +307,7 @@ void SFM::writePLY(string outputFile)
     // Write header:
     myfile << "ply\n";
     myfile << "format ascii 1.0\n";
-    myfile << "element vertex " << _tracks.size() << "\n";
+    myfile << "element vertex " << _cloudPoint.rows() << "\n";
     myfile << "property float32 x\n";
     myfile << "property float32 y\n";
     myfile << "property float32 z\n";

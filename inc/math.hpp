@@ -33,7 +33,7 @@ void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,
 //  P = R * X + t       (conversion from world to camera coordinates)
 //  p = -P / P.z        (perspective division)
 //  p' = f * r(p) * p
-void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
+void project3DPointToPixel(Vector4d& inputPoint, Vector2d& outputPoint,
   Matrix3d R, Vector3d t, double f, double k1, double k2);
 
   // Projects the world position to camera coordinates following the dataset specification
@@ -60,10 +60,15 @@ void triangulateCERES(Tracks& tracks, ImagesVec& images);
 double calculateReprojectionError(Track& track, ImagesVec& images);
 
 // Triangulates N views
-bool TriangulateNViewAlgebraic
+Vec4 TriangulateNViewAlgebraic
 (
   const Mat3X & points,
-  const std::vector<Mat34>& poses,
-  Vec4* X
+  const std::vector<Mat34>& poses
 );
+Vec4 TriangulateNViewsNonHomogeneous
+(
+  const Mat3X & points,
+  const std::vector<Mat34>& poses
+);
+
 #endif

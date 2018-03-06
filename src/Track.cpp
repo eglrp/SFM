@@ -12,6 +12,6 @@ void Track::printTrack()
   print("worldPosition:" << worldPosition.transpose());
   for(auto el: occurrences)
   {
-    //print("camkey:" << el.first << ". Position:" << el.second(0) << "," <<el.second(1));
+    print("camkey:" << el.first << ". Position:" << el.second(0) << "," <<el.second(1));
   }
 }

@@ -33,7 +33,7 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     double cx = 0,cy = 0; // Pixel positions are already counted from center
     Vector2d undistorted;
     undistortPoint(distorted, undistorted,cx,cy,f,k1,k2);
-    points.col(i) = distorted.homogeneous();
+    points.col(i) = undistorted.homogeneous();
 
     // Get the pose:
     Matrix3d R = it->R;
@@ -42,14 +42,15 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     computeProjectionMatrix(R,t,P);
     poses[i] = P;
   }
-  Vec4 X;
-  bool success = TriangulateNViewAlgebraic(points.cast<double>(),poses, &X);
+
+  print(points.transpose());
+  Vec4 X = TriangulateNViewsNonHomogeneous(points.cast<double>(),poses);
   Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
   track.worldPosition = sol;
   return sol;
 }
 
-void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
+void project3DPointToPixel(Vector4d& inputPoint, Vector2d& outputPoint,
   Matrix3d R, Vector3d t, double f, double k1, double k2)
 {
     Matrix<double,3,4> P;
@@ -70,7 +71,7 @@ void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
     outputPoint(1) = f * distortion * y;
 }
 void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
-  Matrix3d R, Vector3d t)
+  Matrix3d& R, Vector3d& t)
   {
     Matrix<double,3,4> P;
     computeProjectionMatrix(R,t,P);
@@ -82,7 +83,7 @@ void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
     outputPoint(1) = imageCoords(1);
   }
 
-void projectCameraPointToPixel(const Vector2d& inputPoint, Vector2d& outputPoint,
+void projectCameraPointToPixel(Vector2d& inputPoint, Vector2d& outputPoint,
   double f, double k1, double k2)
   {
     double x = inputPoint(0);
@@ -138,15 +139,12 @@ void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double 
 }
 
 
-bool TriangulateNViewAlgebraic
+Vec4 TriangulateNViewAlgebraic
 (
   const Mat3X & points,
-  const std::vector<Mat34>& poses,
-  Vec4* X
+  const std::vector<Mat34>& poses
 )
 {
-
- assert(poses.size() == points.cols());
 
   Mat4 AtA = Mat4::Zero();
   for (Mat3X::Index i = 0; i < points.cols(); ++i)
@@ -159,15 +157,13 @@ bool TriangulateNViewAlgebraic
   }
 
   Eigen::SelfAdjointEigenSolver<Mat4> eigen_solver(AtA);
-  *X = eigen_solver.eigenvectors().col(0);
-  return eigen_solver.info() == Eigen::Success;
+  return eigen_solver.eigenvectors().col(0);
 }
-/*
-bool TriangulateNViewsNonHomogeneous
+
+Vec4 TriangulateNViewsNonHomogeneous
 (
   const Mat3X & points,
-  const std::vector<Mat34>& poses,
-  Vec4* X
+  const std::vector<Mat34>& poses
 )
 {
   assert(poses.size() == points.cols());
@@ -191,18 +187,31 @@ bool TriangulateNViewsNonHomogeneous
     RowVector3d p0 = R.row(0);
     RowVector3d p1 = R.row(1);
     RowVector3d p2 = R.row(2);
+    print(i)
+
+    print("p0: " << p0)
+    print("p1: " << p1)
+    print("p2: " << p2)
+    print("t: " << t.transpose())
+
 
     A.row(2*i + 0) = x * p2 - p0;
     A.row(2*i + 1) = y * p2 - p1;
-
     B(2*i +0) = x * t(2) - t(0);
-    B(2*i +0) = y * t(2) - t(1);
-  }
-  JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
-  MatrixXf sol = svd.solve(B);
+    B(2*i +1) = y * t(2) - t(1);
 
-  X = Vec4(sol(0),sol(1),sol(2),sol(3));
-}*/
+  }
+  print("A:")
+  print(A);
+  print("B:")
+  print(B)
+  //JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
+  //MatrixXf sol = svd.solve(B);
+  //return Vec4(sol(0),sol(1),sol(2),sol(3));
+  print("The answer is clearly " <<endl <<  A.jacobiSvd(ComputeThinU | ComputeThinV).solve(B))
+  Vector3d triangulation =  A.jacobiSvd(ComputeThinU | ComputeThinV).solve(B);
+  return triangulation.homogeneous();
+}
 
 double calculateReprojectionError(Track& track, ImagesVec& images)
 {
