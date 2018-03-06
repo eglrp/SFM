@@ -43,7 +43,6 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     poses[i] = P;
   }
 
-  print(points.transpose());
   Vec4 X = TriangulateNViewsNonHomogeneous(points.cast<double>(),poses);
   Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
   track.worldPosition = sol;
@@ -187,13 +186,6 @@ Vec4 TriangulateNViewsNonHomogeneous
     RowVector3d p0 = R.row(0);
     RowVector3d p1 = R.row(1);
     RowVector3d p2 = R.row(2);
-    print(i)
-
-    print("p0: " << p0)
-    print("p1: " << p1)
-    print("p2: " << p2)
-    print("t: " << t.transpose())
-
 
     A.row(2*i + 0) = x * p2 - p0;
     A.row(2*i + 1) = y * p2 - p1;
@@ -201,14 +193,6 @@ Vec4 TriangulateNViewsNonHomogeneous
     B(2*i +1) = y * t(2) - t(1);
 
   }
-  print("A:")
-  print(A);
-  print("B:")
-  print(B)
-  //JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
-  //MatrixXf sol = svd.solve(B);
-  //return Vec4(sol(0),sol(1),sol(2),sol(3));
-  print("The answer is clearly " <<endl <<  A.jacobiSvd(ComputeThinU | ComputeThinV).solve(B))
   Vector3d triangulation =  A.jacobiSvd(ComputeThinU | ComputeThinV).solve(B);
   return triangulation.homogeneous();
 }

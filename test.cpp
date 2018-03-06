@@ -163,14 +163,14 @@ int main(int argc, char** argv)
   track.nPoints = 3;
   print("The new point summary:")
   track.printTrack();
+
+  // And triangulate again!
   sol = triangulateTrackDLT(track,images);
   double newError = calculateReprojectionError(track,images);
   print("Point [" << testPoint.transpose() << "] has been triangulated to [" << sol.transpose() <<"].")
   print("Reprojection error: " << newError << "(+" << newError - error << ")")
 
-  // And triangulate again!
 
-  /*
   // We can project all the points (the GT in this case to check) to a single camera plane
   // Image boundaries are not checked
   SFM sfmProjection(datasetFolder,imagesList, bundleFile);
@@ -215,7 +215,7 @@ int main(int argc, char** argv)
   }
   sfmProjection.setCloudPoint(cloudPoint);
   sfmProjection.writePLY("projectionToCameraTest.ply");
-  *d/
+  */
 std::vector<Matrix<double,1,6> > pointsToDraw;
 for(int j = 0; j < tracks.size(); j++)
   {
@@ -265,5 +265,4 @@ for(int j = 0; j < tracks.size(); j++)
   sfm.writePLY("output.ply");
   sfm.writePLYGT("GT.ply");
   sfm.drawCameras("cameras.ply");
-  */
 }
