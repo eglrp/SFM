@@ -367,7 +367,7 @@ void SFM::drawCameras(string outputFile)
     myfile << "end_header\n";
     for(int i = 0; i < _images.size();i++)
     {
-      Vector3d cameraPosition = - _images[i].R * _images[i].t;
+      Vector3d cameraPosition = - _images[i].R.transpose() * _images[i].t;
 
       myfile << cameraPosition(0) << " " << cameraPosition(1) << " " << cameraPosition(2) << " ";
        myfile << 255 << " " << 0 << " " << 0 <<  "\n";

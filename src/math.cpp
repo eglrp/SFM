@@ -69,6 +69,32 @@ void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
     outputPoint(0) = f * distortion * x;
     outputPoint(1) = f * distortion * y;
 }
+void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
+  Matrix3d R, Vector3d t)
+  {
+    Matrix<double,3,4> P;
+    computeProjectionMatrix(R,t,P);
+    // world to image coords
+    Vector3d imageCoords = P * inputPoint;
+    // Perspective division
+    imageCoords = - imageCoords / imageCoords(2);
+    outputPoint(0) = imageCoords(0);
+    outputPoint(1) = imageCoords(1);
+  }
+
+void projectCameraPointToPixel(const Vector2d& inputPoint, Vector2d& outputPoint,
+  double f, double k1, double k2)
+  {
+    double x = inputPoint(0);
+    double y = inputPoint(1);
+    // Intrinsics parameters
+    double p2 = (x*x + y*y);
+    double p4 = p2*p2;
+    double distortion = (1.0 + k1*p2 + k2*p4);
+    // Final conversion, no need to add cx/cy as the reference is already centered
+    outputPoint(0) = f * distortion * x;
+    outputPoint(1) = f * distortion * y;
+  }
 
 void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double cy, double f, double k1,double k2)
 {

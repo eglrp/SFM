@@ -36,6 +36,17 @@ void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,
 void project3DPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
   Matrix3d R, Vector3d t, double f, double k1, double k2);
 
+  // Projects the world position to camera coordinates following the dataset specification
+  //  P = R * X + t       (conversion from world to camera coordinates)
+  //  p = -P / P.z        (perspective division)
+void project3DPointToCamera(Vector2d& inputPoint, Vector2d& outputPoint,
+  Matrix3d R, Vector3d t);
+
+  // Projects the camera position to pixel coordinates following the dataset specification
+  //  p' = f * r(p) * p
+void projectCameraPointToPixel(const Vector4d& inputPoint, Vector2d& outputPoint,
+  double f, double k1, double k2);
+
 
 // Computes a projection Matrix P given R and t
 void computeProjectionMatrix(const Eigen::Matrix3d& R,
