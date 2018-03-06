@@ -43,11 +43,12 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     Matrix<double,3,4> P;
     computeProjectionMatrix(R,t,P);
 
-//    project3DPointToCamera(track.groundTruth,undistorted,R,t);
+    //project3DPointToCamera(track.groundTruth,undistorted,R,t);
     Vector3d projectedGT = P * track.groundTruth.homogeneous();
     projectedGT = - projectedGT/projectedGT(2);
     projectedGT(2) = -projectedGT(2);
-    points.col(i) = projectedGT;
+    //points.col(i) = projectedGT;
+    points.col(i) = undistorted.homogeneous();
 
     poses[i] = P;
     if(nViews == 3)

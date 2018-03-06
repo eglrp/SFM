@@ -42,7 +42,6 @@ int main(int argc, char** argv)
     print ("Usage: ./SFM <path to dataset file> <Input image list> <Input bundle file> ");
     break;
   }
-  /*
 
 
   // We can project a 3D point to our pixel coordinates easily:
@@ -217,7 +216,7 @@ int main(int argc, char** argv)
   }
   sfmProjection.setCloudPoint(cloudPoint);
   sfmProjection.writePLY("projectionToCameraTest.ply");
-  *d/
+  */
 std::vector<Matrix<double,1,6> > pointsToDraw;
 for(int j = 0; j < tracks.size(); j++)
   {
@@ -255,9 +254,9 @@ for(int j = 0; j < tracks.size(); j++)
   sfmProjection.writePLY("projectionToPixelsTest.ply");
   print("")
   print("")
-*/
-// We can triangulate by passing our track and our images.
-// Create a SFM pipeline with a known dataset.
+
+  // We can triangulate by passing our track and our images.
+  // Create a SFM pipeline with a known dataset.
   SFM sfm(datasetFolder,imagesList, bundleFile);
 
   sfm.computeSFM();
