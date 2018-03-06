@@ -10,7 +10,7 @@
 using namespace std;
 
 #define print(x) cout << x << endl;
-
+#define printRed(x) cout << "\033[0;31m" << x <<"\033[0m"<< endl;
 // For ease of use
 
 using Mat3X = Eigen::Matrix<double, 3, Eigen::Dynamic>;

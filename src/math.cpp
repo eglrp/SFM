@@ -3,7 +3,10 @@
 Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
 {
   int nViews = track.nPoints;
-
+  if(nViews == 3)
+  {
+    track.printTrack();
+  }
   std::vector<Mat34> poses(nViews);
   Mat3X points(3, nViews);
 
@@ -33,19 +36,38 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     double cx = 0,cy = 0; // Pixel positions are already counted from center
     Vector2d undistorted;
     undistortPoint(distorted, undistorted,cx,cy,f,k1,k2);
-    points.col(i) = undistorted.homogeneous();
 
     // Get the pose:
     Matrix3d R = it->R;
     Vector3d t = it->t;
     Matrix<double,3,4> P;
     computeProjectionMatrix(R,t,P);
+
+//    project3DPointToCamera(track.groundTruth,undistorted,R,t);
+    Vector3d projectedGT = P * track.groundTruth.homogeneous();
+    projectedGT = - projectedGT/projectedGT(2);
+    projectedGT(2) = -projectedGT(2);
+    points.col(i) = projectedGT;
+
     poses[i] = P;
+    if(nViews == 3)
+    {
+      printRed(camKey << " (lines " << 3+5*camKey<< ":"<< 3+5*camKey+4<< ")")
+      print(poses[i]);
+
+      print("")
+      print("Distorted: [" << distorted.transpose() << "]");
+      print("f: "<< f << ", k1: " << k1 << " ,k2: " << k2)
+      print("Undistorted: [" << undistorted.homogeneous().transpose()<< "]");
+      print("ProjectedGT: [" << projectedGT.transpose()<< "]");
+    }
   }
+
 
   Vec4 X = TriangulateNViewsNonHomogeneous(points.cast<double>(),poses);
   Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
   track.worldPosition = sol;
+  if(nViews==3) print("Solution:" << sol.transpose() << endl <<"GT:" << track.groundTruth.transpose())
   return sol;
 }
 
@@ -192,6 +214,19 @@ Vec4 TriangulateNViewsNonHomogeneous
     B(2*i +0) = x * t(2) - t(0);
     B(2*i +1) = y * t(2) - t(1);
 
+  }
+  if(poses.size()==3)
+  {
+    printRed("Points:")
+    print(points)
+    Matrix<double,Dynamic,4> C;
+    C.resize(A.rows(),4);
+    C << A,B;
+    printRed("A | B:")
+    print(C)
+    print("A: "<< A.rows() << "x"<< A.cols())
+    print("B: "<< B.rows() << "x"<< B.cols())
+    print("C: "<< C.rows() << "x"<< C.cols())
   }
   Vector3d triangulation =  A.jacobiSvd(ComputeThinU | ComputeThinV).solve(B);
   return triangulation.homogeneous();

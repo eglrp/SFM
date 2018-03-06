@@ -76,7 +76,7 @@ class SFM
     // Creates the tracks vector
     void populateTracks();
     // Populates a track from the Noah Bundler point info
-    void populateTrack(ifstream& bundleFile);
+    void populateTrack(ifstream& bundleFile, int id);
 
 
     vector<int> _imageIDs;

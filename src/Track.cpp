@@ -6,6 +6,7 @@ Track::Track()
 }
 void Track::printTrack()
 {
+  printRed("Track id: " << id);
   print("GT: " << groundTruth.transpose());
   print("Color: " << color.transpose());
   print("number of points: " << occurrences.size());

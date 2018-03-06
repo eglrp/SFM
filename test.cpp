@@ -42,6 +42,7 @@ int main(int argc, char** argv)
     print ("Usage: ./SFM <path to dataset file> <Input image list> <Input bundle file> ");
     break;
   }
+  /*
 
 
   // We can project a 3D point to our pixel coordinates easily:
@@ -138,7 +139,7 @@ int main(int argc, char** argv)
   print("Reprojection error: " << error);
 
   // But what if we add a THIRD VIEW???? **DO WE DARE???**
-  print("But what if we add a THIRD VIEW???? DO WE DARE???")
+  printRed("But what if we add a THIRD VIEW???? DO WE DARE???")
   // We create the camera
   Image additionalImage;
   additionalImage.id = 2;
@@ -161,6 +162,7 @@ int main(int argc, char** argv)
   // Update the track
   track.occurrences.push_back(KeyPoint(2,pixelCoordsCam2));
   track.nPoints = 3;
+  track.id = 0;
   print("The new point summary:")
   track.printTrack();
 
@@ -170,7 +172,7 @@ int main(int argc, char** argv)
   print("Point [" << testPoint.transpose() << "] has been triangulated to [" << sol.transpose() <<"].")
   print("Reprojection error: " << newError << "(+" << newError - error << ")")
 
-
+  print("")
   // We can project all the points (the GT in this case to check) to a single camera plane
   // Image boundaries are not checked
   SFM sfmProjection(datasetFolder,imagesList, bundleFile);
@@ -215,7 +217,7 @@ int main(int argc, char** argv)
   }
   sfmProjection.setCloudPoint(cloudPoint);
   sfmProjection.writePLY("projectionToCameraTest.ply");
-  */
+  *d/
 std::vector<Matrix<double,1,6> > pointsToDraw;
 for(int j = 0; j < tracks.size(); j++)
   {
@@ -253,16 +255,18 @@ for(int j = 0; j < tracks.size(); j++)
   sfmProjection.writePLY("projectionToPixelsTest.ply");
   print("")
   print("")
-
+*/
 // We can triangulate by passing our track and our images.
 // Create a SFM pipeline with a known dataset.
   SFM sfm(datasetFolder,imagesList, bundleFile);
 
   sfm.computeSFM();
-  print("Reconstruction error: " << sfm.reprojectionError());
-  print("GT error: " << sfm.GTError());
+  //print("Reconstruction error: " << sfm.reprojectionError());
+  //print("GT error: " << sfm.GTError());
 
+  /*
   sfm.writePLY("output.ply");
   sfm.writePLYGT("GT.ply");
   sfm.drawCameras("cameras.ply");
+  */
 }

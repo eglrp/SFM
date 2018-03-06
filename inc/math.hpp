@@ -39,7 +39,7 @@ void project3DPointToPixel(Vector4d& inputPoint, Vector2d& outputPoint,
   // Projects the world position to camera coordinates following the dataset specification
   //  P = R * X + t       (conversion from world to camera coordinates)
   //  p = -P / P.z        (perspective division)
-void project3DPointToCamera(Vector2d& inputPoint, Vector2d& outputPoint,
+void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
   Matrix3d R, Vector3d t);
 
   // Projects the camera position to pixel coordinates following the dataset specification

@@ -191,14 +191,10 @@ void SFM::populateTracks()
     //First point:
     for(int iPoint = 0; iPoint < nPoints; iPoint++)
     {
-      populateTrack(bundleFile);
+      populateTrack(bundleFile,iPoint);
       if(_debugTracks)
       {
         _tracks.back().printTrack();
-      }
-      if(iPoint == -1)
-      {
-        break;
       }
     }
 
@@ -210,7 +206,7 @@ void SFM::populateTracks()
   }
 }
 
-void SFM::populateTrack(ifstream& openFile)
+void SFM::populateTrack(ifstream& openFile, int id)
 {
   Eigen::Vector3d groundTruth;
   Eigen::Vector3i color;
@@ -248,6 +244,7 @@ void SFM::populateTrack(ifstream& openFile)
   if(occurrences.size() > 1)
   {
     Track track;
+    track.id = id;
     track.groundTruth = groundTruth;
     track.color = color;
     track.occurrences = occurrences;
@@ -269,6 +266,10 @@ void SFM::computeSFM()
   for(int i = 0; i < _tracks.size(); i++)
   {
     Vector3d X = triangulateTrackDLT(_tracks[i], _images);
+    if(_tracks[i].nPoints == 3)
+    {
+      break;
+    }
     Vector3d color = _tracks[i].color.cast<double>();
     Vector3d GT = _tracks[i].groundTruth;
     _cloudPoint(i,0) = X(0);

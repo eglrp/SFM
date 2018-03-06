@@ -17,6 +17,8 @@ class Track
 
   public:
     Track();
+    //the id
+    int id;
     // the GT from the Noah Bundler
     Vector3d groundTruth;
     // the color from the Noah Bundler
