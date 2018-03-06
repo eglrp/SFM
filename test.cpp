@@ -123,7 +123,7 @@ int main(int argc, char** argv)
   occurrences[1] = KeyPoint(1,pixelCoordsCam1);
 
   Track track;
-  track.groundTruth = Vector3d(X(0),X(1),X(2));
+  track.groundTruth = Vector3d(testPoint(0),testPoint(1),testPoint(2));
   track.color = Vector3i(255,0,0);
 
   track.nPoints = 2;
@@ -260,12 +260,12 @@ for(int j = 0; j < tracks.size(); j++)
   SFM sfm(datasetFolder,imagesList, bundleFile);
 
   sfm.computeSFM();
-  //print("Reconstruction error: " << sfm.reprojectionError());
-  //print("GT error: " << sfm.GTError());
+  print("Reconstruction error: " << sfm.reprojectionError());
+  print("GT error: " << sfm.GTError());
 
-  /*
+
   sfm.writePLY("output.ply");
   sfm.writePLYGT("GT.ply");
   sfm.drawCameras("cameras.ply");
-  */
+
 }

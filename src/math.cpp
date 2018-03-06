@@ -3,7 +3,7 @@
 Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
 {
   int nViews = track.nPoints;
-  if(nViews == 3)
+  if(nViews == -1)
   {
     track.printTrack();
   }
@@ -46,12 +46,14 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     //project3DPointToCamera(track.groundTruth,undistorted,R,t);
     Vector3d projectedGT = P * track.groundTruth.homogeneous();
     projectedGT = - projectedGT/projectedGT(2);
+    // small workaround to avoid converting it to a 2D vector and then creating
+    // its homogeneous.
     projectedGT(2) = -projectedGT(2);
     //points.col(i) = projectedGT;
     points.col(i) = undistorted.homogeneous();
 
     poses[i] = P;
-    if(nViews == 3)
+    if(nViews == -1)
     {
       printRed(camKey << " (lines " << 3+5*camKey<< ":"<< 3+5*camKey+4<< ")")
       print(poses[i]);
@@ -68,7 +70,7 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
   Vec4 X = TriangulateNViewsNonHomogeneous(points.cast<double>(),poses);
   Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
   track.worldPosition = sol;
-  if(nViews==3) print("Solution:" << sol.transpose() << endl <<"GT:" << track.groundTruth.transpose())
+  if(nViews==-1) print("Solution:" << sol.transpose() << endl <<"GT:" << track.groundTruth.transpose())
   return sol;
 }
 
@@ -216,7 +218,7 @@ Vec4 TriangulateNViewsNonHomogeneous
     B(2*i +1) = y * t(2) - t(1);
 
   }
-  if(poses.size()==3)
+  if(poses.size()==-1)
   {
     printRed("Points:")
     print(points)

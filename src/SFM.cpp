@@ -266,10 +266,6 @@ void SFM::computeSFM()
   for(int i = 0; i < _tracks.size(); i++)
   {
     Vector3d X = triangulateTrackDLT(_tracks[i], _images);
-    if(_tracks[i].nPoints == 3)
-    {
-      break;
-    }
     Vector3d color = _tracks[i].color.cast<double>();
     Vector3d GT = _tracks[i].groundTruth;
     _cloudPoint(i,0) = X(0);
@@ -285,20 +281,11 @@ void SFM::computeSFM()
     _cloudPointGT(i,3) = color(0);
     _cloudPointGT(i,4) = color(1);
     _cloudPointGT(i,5) = color(2);
-    i++;
   }
   end = clock();
   print("Reconstruction done. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
 }
 
-void SFM::writePLYGT(string outputFile)
-{
-  for(int iTrack = 0; iTrack < _tracks.size(); iTrack++)
-  {
-    _tracks[iTrack].worldPosition = _tracks[iTrack].groundTruth;
-  }
-  writePLY(outputFile);
-}
 
 void SFM::writePLY(string outputFile)
 {
@@ -329,6 +316,42 @@ void SFM::writePLY(string outputFile)
     print("Unable to open file " + outputFile);
   }
 
+}
+void SFM::writePLYGT(string outputFile)
+{
+  ofstream myfile (outputFile);
+  if(myfile.is_open())
+  {
+    // Write header:
+    myfile << "ply\n";
+    myfile << "format ascii 1.0\n";
+    myfile << "element vertex " << _cloudPointGT.rows() << "\n";
+    myfile << "property float32 x\n";
+    myfile << "property float32 y\n";
+    myfile << "property float32 z\n";
+    myfile << "property uchar red\n";
+    myfile << "property uchar green\n";
+    myfile << "property uchar blue\n";
+    myfile << "end_header\n";
+    for(int i = 0; i < _cloudPoint.rows();i++)
+    {
+      myfile << _cloudPointGT(i,0) << " " << _cloudPointGT(i,1) << " " << _cloudPointGT(i,2) << " ";
+       myfile << _cloudPointGT(i,3) << " " << _cloudPointGT(i,4) << " " << _cloudPointGT(i,5) << "\n";
+    }
+    myfile.close();
+    print("Cloudpoint saved to " + outputFile);
+  }
+  else
+  {
+    print("Unable to open file " + outputFile);
+  }
+  /*
+  for(int iTrack = 0; iTrack < _tracks.size(); iTrack++)
+  {
+    _tracks[iTrack].worldPosition = _tracks[iTrack].groundTruth;
+  }
+  writePLY(outputFile);
+  */
 }
 
 void SFM::drawCameras(string outputFile)

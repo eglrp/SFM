@@ -60,7 +60,7 @@ void triangulateCERES(Tracks& tracks, ImagesVec& images);
 double calculateReprojectionError(Track& track, ImagesVec& images);
 
 // Triangulates N views
-Vec4 TriangulateNViewAlgebraic
+Vec4 TriangulateNViewsHomogeneous
 (
   const Mat3X & points,
   const std::vector<Mat34>& poses

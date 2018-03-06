@@ -40,4 +40,16 @@ if __name__ == "__main__":
     B[5] = eq1[-1]
 
     a,b,c = ls.lstsq(A,B)[0]
-    print(a,b,c)
+
+    X = np.zeros((3,1))
+    X[0] = a[0]
+    X[1] = b[0]
+    X[2] = c[0]
+
+    print np.dot(A,X) - B
+    X2 = np.zeros((3,1))
+    X2[0] = 0.469954
+    X2[1] = 0.455934
+    X2[2] = -1.54736
+
+    print np.dot(A,X2) - B
