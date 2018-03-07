@@ -16,7 +16,7 @@
 
 #include "definitions.hpp"
 #include "Track.hpp"
-#include "Image.hpp"
+#include "Camera.hpp"
 #include "math.hpp"
 
 
@@ -53,9 +53,9 @@ class SFM
     // 1: non homogeneous
     // 0: Algebraic (from OpenMVG)
 
-    void setImages(ImagesVec images);
+    void setCameras(CamerasVec cameras);
 
-    ImagesVec getImages();
+    CamerasVec getCameras();
 
     void setTracks(Tracks tracks);
 
@@ -64,14 +64,14 @@ class SFM
     void setCloudPoint(Matrix<double,Dynamic,6> cloudPoint);
 
   private:
-    // Enable to verbose the Images and Tracks creation
-    bool _debugImages = false;
+    // Enable to verbose the Cameras and Tracks creation
+    bool _debugCameras = false;
     bool _debugTracks = false;
     // Creates the images vector.
-    void populateImages();
-    // Populates a Image from the Noah Bundler camera info. The Image needs a
+    void populateCameras();
+    // Populates a Camera from the Noah Bundler camera info. The Camera needs a
     // valid ID beforehand.
-    void populateImage(Image& im);
+    void populateCamera(Camera& cam);
 
     // Creates the tracks vector
     void populateTracks();
@@ -79,15 +79,15 @@ class SFM
     void populateTrack(ifstream& bundleFile, int id);
 
 
-    vector<int> _imageIDs;
+    vector<int> _cameraIDs;
 
-    int _nImages;
+    int _nCameras;
     string _datasetFolder;
     string _inputImagesFile;
     string _listOfImages;
     string _bundleFile;
 
-    ImagesVec _images;
+    CamerasVec _cameras;
     Tracks _tracks;
 
     Matrix<double,Dynamic,6> _cloudPoint;

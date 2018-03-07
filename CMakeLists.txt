@@ -33,7 +33,7 @@ set(SFM_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/SFM.cpp
   ${PROJECT_SOURCE_DIR}/src/Math.cpp
   ${PROJECT_SOURCE_DIR}/src/Track.cpp
-  ${PROJECT_SOURCE_DIR}/src/Image.cpp
+  ${PROJECT_SOURCE_DIR}/src/Camera.cpp
 )
 add_library(SFM_libs ${SFM_SOURCE_FILES})
 

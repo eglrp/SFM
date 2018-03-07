@@ -1,9 +1,9 @@
 #include "math.hpp"
 
-Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
+Vec3 triangulateTrackDLT(Track& track, const CamerasVec& cameras)
 {
   int nViews = track.nPoints;
-  if(nViews == -1)
+  if(nViews == 3)
   {
     track.printTrack();
   }
@@ -16,13 +16,13 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     int camKey = kp.first;
     Vector2d distorted = kp.second;
 
-    // Look for image:
+    // Look for camera:
     // predicate to find the right camera
-    auto pred = [camKey](const Image& im)
+    auto pred = [camKey](const Camera& im)
     {
       return (im.id == camKey);
     };
-    auto it = find_if(begin(images),end(images),pred);
+    auto it = find_if(begin(cameras),end(cameras),pred);
 
     assert(camKey == it->id);
 
@@ -49,11 +49,11 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
     // small workaround to avoid converting it to a 2D vector and then creating
     // its homogeneous.
     projectedGT(2) = -projectedGT(2);
-    //points.col(i) = projectedGT;
     points.col(i) = undistorted.homogeneous();
+    points.col(i) = projectedGT;
 
     poses[i] = P;
-    if(nViews == -1)
+    if(nViews == 3)
     {
       printRed(camKey << " (lines " << 3+5*camKey<< ":"<< 3+5*camKey+4<< ")")
       print(poses[i]);
@@ -70,7 +70,7 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
   Vec4 X = TriangulateNViewsNonHomogeneous(points.cast<double>(),poses);
   Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
   track.worldPosition = sol;
-  if(nViews==-1) print("Solution:" << sol.transpose() << endl <<"GT:" << track.groundTruth.transpose())
+  if(nViews==3) print("Solution:" << sol.transpose() << endl <<"GT:" << track.groundTruth.transpose())
   return sol;
 }
 
@@ -218,7 +218,7 @@ Vec4 TriangulateNViewsNonHomogeneous
     B(2*i +1) = y * t(2) - t(1);
 
   }
-  if(poses.size()==-1)
+  if(poses.size()==3)
   {
     printRed("Points:")
     print(points)
@@ -235,7 +235,7 @@ Vec4 TriangulateNViewsNonHomogeneous
   return triangulation.homogeneous();
 }
 
-double calculateReprojectionError(Track& track, ImagesVec& images)
+double calculateReprojectionError(Track& track, CamerasVec& cameras)
 {
   double error = 0;
   for(int iTrack = 0; iTrack < track.occurrences.size(); iTrack++)
@@ -243,13 +243,13 @@ double calculateReprojectionError(Track& track, ImagesVec& images)
     KeyPoint kp = track.occurrences[iTrack];
     int camKey = kp.first;
     Vector2d distorted = kp.second;
-    // Look for image:
+    // Look for camera:
     // predicate to find the right camera
-    auto pred = [camKey](const Image& im)
+    auto pred = [camKey](const Camera& im)
     {
       return (im.id == camKey);
     };
-    auto it = find_if(begin(images),end(images),pred);
+    auto it = find_if(begin(cameras),end(cameras),pred);
     assert(camKey == it->id);
 
 

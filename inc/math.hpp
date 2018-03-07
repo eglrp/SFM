@@ -6,7 +6,7 @@
 
 #include <assert.h>
 #include "ceres/ceres.h"
-#include "Image.hpp"
+#include "Camera.hpp"
 #include "Track.hpp"
 #include <algorithm>
 #include <math.h>
@@ -18,10 +18,10 @@ using namespace std;
 
 
 // Triangulates the track given with the intrinsics information from images
-Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images);
+Vec3 triangulateTrackDLT(Track& track, const CamerasVec& cameras);
 
 // Not implemented
-void IterativeLinearLSTriangulation(const Track& track, const ImagesVec& images);
+void IterativeLinearLSTriangulation(const Track& track, const CamerasVec& cameras);
 
 // Undistorts radial distortion created by the fisheye lens camera model
 void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,
@@ -54,10 +54,10 @@ void computeProjectionMatrix(const Eigen::Matrix3d& R,
   Eigen::Matrix<double, 3,4>& P);
 
 // Not implemented
-void triangulateCERES(Tracks& tracks, ImagesVec& images);
+void triangulateCERES(Tracks& tracks, CamerasVec& cameras);
 
 // Calculates the reprojection error for a track.
-double calculateReprojectionError(Track& track, ImagesVec& images);
+double calculateReprojectionError(Track& track, CamerasVec& cameras);
 
 // Triangulates N views
 Vec4 TriangulateNViewsHomogeneous

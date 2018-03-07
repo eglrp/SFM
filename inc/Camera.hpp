@@ -1,5 +1,5 @@
-#ifndef IMAGE_HPP
-#define IMAGE_HPP
+#ifndef CAMERA_HPP
+#define CAMERA_HPP
 
 #include <vector>
 #include <iostream>
@@ -8,11 +8,11 @@
 
 #include "definitions.hpp"
 
-class Image
+class Camera
 {
   public:
-    Image();
-    // name of the image
+    Camera();
+    // name of the Camera
     string name;
     // id, the same as the line they appear in the list.txt
     int id;
@@ -27,9 +27,9 @@ class Image
     Matrix3d R;
     Vector3d t;
     // for debugg purposes
-    void printImage();
+    void printCamera();
 };
 
-typedef vector< Image > ImagesVec;
+typedef vector< Camera > CamerasVec;
 
 #endif

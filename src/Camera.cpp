@@ -1,13 +1,13 @@
-#include "Image.hpp"
+#include "Camera.hpp"
 
-Image::Image()
+Camera::Camera()
 {
 
 }
 
-void Image::printImage()
+void Camera::printCamera()
 {
-  print("name:" << name);
+  printRed("name:" << name);
   print("id: " << id);
   print("f: " << f);
   print("k1: " << k1);

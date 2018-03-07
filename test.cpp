@@ -5,7 +5,7 @@
 #include "math.hpp"
 #include "Eigen/Core"
 #include "definitions.hpp"
-#include "Image.hpp"
+#include "Camera.hpp"
 #include "Track.hpp"
 #include <assert.h>
 
@@ -71,46 +71,46 @@ int main(int argc, char** argv)
 
 
 
-  print("Triangulation of one point Example")
+  printRed("Triangulation of one point Example")
   // Images and tracks can be created with ease:
-  ImagesVec images(2);
+  CamerasVec cameras(2);
 
-  images[0].id = 0;
-  images[1].id = 1;
+  cameras[0].id = 0;
+  cameras[1].id = 1;
   // Both cameras have the same direction
-  images[0].R = R;
-  images[1].R = R;
+  cameras[0].R = R;
+  cameras[1].R = R;
   // But different location
-  images[0].t = Vector3d(-1,0,0);
-  images[1].t = Vector3d(1,0,0);
+  cameras[0].t = Vector3d(-1,0,0);
+  cameras[1].t = Vector3d(1,0,0);
 
   // Similar intrinsics
-  images[0].f = 500;
-  images[1].f = 700;
+  cameras[0].f = 500;
+  cameras[1].f = 700;
 
-  images[0].k1 = 0.01;
-  images[1].k1 = 0.1;
+  cameras[0].k1 = 0.01;
+  cameras[1].k1 = 0.1;
 
-  images[0].k2 = 0.1;
-  images[1].k2 = 0.01;
+  cameras[0].k2 = 0.1;
+  cameras[1].k2 = 0.01;
 
-  print("Image 0:")
-  images[0].printImage();
+  print("Camera 0:")
+  cameras[0].printCamera();
 
-  print("Image 1:")
-  images[1].printImage();
+  print("Camera 1:")
+  cameras[1].printCamera();
 
   Vector2d pixelCoordsCam0,pixelCoordsCam1;
 
   Vector4d testPoint(0,0,-10,1);
 
-  project3DPointToPixel(testPoint,pixelCoordsCam0,images[0].R,images[0].t,images[0].f,images[0].k1,images[0].k2);
-  project3DPointToPixel(testPoint,pixelCoordsCam1,images[1].R,images[1].t,images[1].f,images[1].k1,images[1].k2);
+  project3DPointToPixel(testPoint,pixelCoordsCam0,cameras[0].R,cameras[0].t,cameras[0].f,cameras[0].k1,cameras[0].k2);
+  project3DPointToPixel(testPoint,pixelCoordsCam1,cameras[1].R,cameras[1].t,cameras[1].f,cameras[1].k1,cameras[1].k2);
 
   Vector2d cameraCoordsFromPixel0,cameraCoordsFromPixel1;
 
-  undistortPoint(Vector2d(pixelCoordsCam0(0),pixelCoordsCam0(1)),cameraCoordsFromPixel0,0,0,images[0].f,images[0].k1,images[0].k2);
-  undistortPoint(Vector2d(pixelCoordsCam1(0),pixelCoordsCam1(1)),cameraCoordsFromPixel1,0,0,images[1].f,images[1].k1,images[1].k2);
+  undistortPoint(Vector2d(pixelCoordsCam0(0),pixelCoordsCam0(1)),cameraCoordsFromPixel0,0,0,cameras[0].f,cameras[0].k1,cameras[0].k2);
+  undistortPoint(Vector2d(pixelCoordsCam1(0),pixelCoordsCam1(1)),cameraCoordsFromPixel1,0,0,cameras[1].f,cameras[1].k1,cameras[1].k2);
 
   print("Point [" << testPoint.transpose() <<"] is projected to [" << pixelCoordsCam0.transpose() <<
   "] in image 0 and to [" << cameraCoordsFromPixel0.transpose()<<"] in camera 0")
@@ -132,28 +132,28 @@ int main(int argc, char** argv)
   print("The point summary:")
   track.printTrack();
 
-  Vector3d sol = triangulateTrackDLT(track,images);
+  Vector3d sol = triangulateTrackDLT(track,cameras);
   print("Point [" << testPoint.transpose() << "] has been triangulated to [" << sol.transpose() <<"].")
-  double error = calculateReprojectionError(track,images);
+  double error = calculateReprojectionError(track,cameras);
   print("Reprojection error: " << error);
 
   // But what if we add a THIRD VIEW???? **DO WE DARE???**
   printRed("But what if we add a THIRD VIEW???? DO WE DARE???")
   // We create the camera
-  Image additionalImage;
-  additionalImage.id = 2;
-  additionalImage.R = R;
-  additionalImage.t = Vector3d(0,1,0);
-  additionalImage.f = 600;
-  additionalImage.k1 = 0.1;
-  additionalImage.k2 = 0.1;
-  additionalImage.printImage();
-  images.push_back(additionalImage);
+  Camera additionalCamera;
+  additionalCamera.id = 2;
+  additionalCamera.R = R;
+  additionalCamera.t = Vector3d(0,1,0);
+  additionalCamera.f = 600;
+  additionalCamera.k1 = 0.1;
+  additionalCamera.k2 = 0.1;
+  additionalCamera.printCamera();
+  cameras.push_back(additionalCamera);
 
   Vector2d pixelCoordsCam2;
   Vector2d cameraCoordsFromPixel2;
-  project3DPointToPixel(testPoint,pixelCoordsCam2,images[2].R,Vector3d(0,1,0),images[2].f,images[2].k1,images[2].k2);
-  undistortPoint(Vector2d(pixelCoordsCam2(0),pixelCoordsCam2(1)),cameraCoordsFromPixel2,0,0,images[2].f,images[2].k1,images[2].k2);
+  project3DPointToPixel(testPoint,pixelCoordsCam2,cameras[2].R,Vector3d(0,1,0),cameras[2].f,cameras[2].k1,cameras[2].k2);
+  undistortPoint(Vector2d(pixelCoordsCam2(0),pixelCoordsCam2(1)),cameraCoordsFromPixel2,0,0,cameras[2].f,cameras[2].k1,cameras[2].k2);
 
   print("Point [" << testPoint.transpose() <<"] is projected to [" << pixelCoordsCam2.transpose() <<
   "] in image 2 and to [" << cameraCoordsFromPixel2.transpose()<<"] in camera 2")
@@ -166,8 +166,8 @@ int main(int argc, char** argv)
   track.printTrack();
 
   // And triangulate again!
-  sol = triangulateTrackDLT(track,images);
-  double newError = calculateReprojectionError(track,images);
+  sol = triangulateTrackDLT(track,cameras);
+  double newError = calculateReprojectionError(track,cameras);
   print("Point [" << testPoint.transpose() << "] has been triangulated to [" << sol.transpose() <<"].")
   print("Reprojection error: " << newError << "(+" << newError - error << ")")
 
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
   // Image boundaries are not checked
   SFM sfmProjection(datasetFolder,imagesList, bundleFile);
 
-  Image im = sfmProjection.getImages()[0];
+  Camera im = sfmProjection.getCameras()[0];
   Tracks tracks = sfmProjection.getTracks();
 
   Matrix<double,Dynamic,6> cloudPoint;

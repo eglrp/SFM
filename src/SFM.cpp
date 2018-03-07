@@ -29,10 +29,10 @@ SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
 
   clock_t begin,end;
   begin = clock();
-  print("Populating images");
-  populateImages();
+  print("Populating cameras");
+  populateCameras();
   end = clock();
-  print(_images.size() << " images created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC << " s.");
+  print(_cameras.size() << " cameras created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC << " s.");
 
   begin = clock();
   print("Populating tracks");
@@ -40,9 +40,9 @@ SFM::SFM(string datasetFolder, string inputImagesFile, string bundleFile)
   end = clock();
   print(_tracks.size() << " tracks created. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
 }
-ImagesVec SFM::getImages()
+CamerasVec SFM::getCameras()
 {
-  return _images;
+  return _cameras;
 }
 Tracks SFM::getTracks()
 {
@@ -54,7 +54,7 @@ void SFM::setCloudPoint(Matrix<double,Dynamic,6> cloudPoint)
   _cloudPoint = cloudPoint;
 }
 
-void SFM::populateImages()
+void SFM::populateCameras()
 {
 
   vector< string > allImages, inputImages;
@@ -96,18 +96,18 @@ void SFM::populateImages()
     {
       if( inputImages[iInputImage] == allImages[iAllImages])
       {
-        Image im;
-        im.id = iAllImages;
-        im.name = inputImages[iInputImage];
-        populateImage(im);
-        _images.push_back(im);
-        _imageIDs.push_back(iAllImages);
+        Camera cam;
+        cam.id = iAllImages;
+        cam.name = inputImages[iInputImage];
+        populateCamera(cam);
+        _cameras.push_back(cam);
+        _cameraIDs.push_back(iAllImages);
       }
     }
   }
 }
 
-void SFM::populateImage(Image& im)
+void SFM::populateCamera(Camera& im)
 {
   cv::Mat image = cv::imread(_datasetFolder +  im.name);
   im.w = image.cols;
@@ -155,9 +155,9 @@ void SFM::populateImage(Image& im)
     print("Could not open file " + _bundleFile);
   }
 
-  if(_debugImages)
+  if(_debugCameras)
   {
-    print("Image " << im.name << " read. (" << im.id <<")" )
+    print("Camera " << im.name << " read. (" << im.id <<")" )
     print("lines from " << 3 + 5*im.id << " to " << 7 + 5*im.id );
     print("f,k1,k2: " << im.f << "," << im.k1 << "," << im.k2);
     print("R:");
@@ -232,7 +232,7 @@ void SFM::populateTrack(ifstream& openFile, int id)
     int cameraKey, kpKey;
     double x, y;
     pos >> cameraKey >> kpKey >> x >> y;
-    if(find(_imageIDs.begin(),_imageIDs.end(),cameraKey) != _imageIDs.end())
+    if(find(_cameraIDs.begin(),_cameraIDs.end(),cameraKey) != _cameraIDs.end())
     {
       KeyPoint kp;
       kp.first  = cameraKey;
@@ -256,7 +256,7 @@ void SFM::populateTrack(ifstream& openFile, int id)
 
 void SFM::computeSFM()
 {
-  assert(_tracks.size() < 1 || _images.size() < 2);
+  assert(_tracks.size() < 1 || _cameras.size() < 2);
 
   _cloudPoint.resize(_tracks.size(),6);
   _cloudPointGT.resize(_tracks.size(),6);
@@ -265,7 +265,8 @@ void SFM::computeSFM()
 
   for(int i = 0; i < _tracks.size(); i++)
   {
-    Vector3d X = triangulateTrackDLT(_tracks[i], _images);
+    Vector3d X = triangulateTrackDLT(_tracks[i], _cameras);
+    if(_tracks[i].nPoints == 3) break;
     Vector3d color = _tracks[i].color.cast<double>();
     Vector3d GT = _tracks[i].groundTruth;
     _cloudPoint(i,0) = X(0);
@@ -362,7 +363,7 @@ void SFM::drawCameras(string outputFile)
     // Write header:
     myfile << "ply\n";
     myfile << "format ascii 1.0\n";
-    myfile << "element vertex " << _images.size() << "\n";
+    myfile << "element vertex " << _cameras.size() << "\n";
     myfile << "property float32 x\n";
     myfile << "property float32 y\n";
     myfile << "property float32 z\n";
@@ -370,9 +371,9 @@ void SFM::drawCameras(string outputFile)
     myfile << "property uchar green\n";
     myfile << "property uchar blue\n";
     myfile << "end_header\n";
-    for(int i = 0; i < _images.size();i++)
+    for(int i = 0; i < _cameras.size();i++)
     {
-      Vector3d cameraPosition = - _images[i].R.transpose() * _images[i].t;
+      Vector3d cameraPosition = - _cameras[i].R.transpose() * _cameras[i].t;
 
       myfile << cameraPosition(0) << " " << cameraPosition(1) << " " << cameraPosition(2) << " ";
        myfile << 255 << " " << 0 << " " << 0 <<  "\n";
@@ -392,7 +393,7 @@ double SFM::reprojectionError()
     double error = 0;
     for(int i = 0; i < _tracks.size(); i++)
     {
-      error += calculateReprojectionError(_tracks[i], _images);
+      error += calculateReprojectionError(_tracks[i], _cameras);
     }
     return error/_tracks.size();
 }
@@ -411,7 +412,7 @@ void SFM::setTracks(Tracks tracks)
   _tracks = tracks;
 }
 
-void SFM::setImages(ImagesVec images)
+void SFM::setCameras(CamerasVec cameras)
 {
-  _images = images;
+  _cameras = cameras;
 }
