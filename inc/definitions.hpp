@@ -8,6 +8,7 @@
 #include "Track.hpp"
 
 using namespace std;
+using namespace Eigen;
 
 #define print(x) cout << x << endl;
 #define printRed(x) cout << "\033[0;31m" << x <<"\033[0m"<< endl;

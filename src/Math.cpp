@@ -7,7 +7,7 @@ Vec3 triangulateTrackDLT(Track& track, const ImagesVec& images)
   {
     track.printTrack();
   }
-  std::vector<Mat34> poses(nViews);
+  vector<Mat34> poses(nViews);
   Mat3X points(3, nViews);
 
   for(int i = 0; i < nViews; i++)
@@ -153,7 +153,7 @@ void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double 
         break;
       }
     }
-    scale = std:: tan(theta)/theta_d;
+    scale =  tan(theta)/theta_d;
     outputPoint = pw * scale;
   }
   else
@@ -166,7 +166,7 @@ void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double 
 Vec4 TriangulateNViewAlgebraic
 (
   const Mat3X & points,
-  const std::vector<Mat34>& poses
+  const vector<Mat34>& poses
 )
 {
 
@@ -187,7 +187,7 @@ Vec4 TriangulateNViewAlgebraic
 Vec4 TriangulateNViewsNonHomogeneous
 (
   const Mat3X & points,
-  const std::vector<Mat34>& poses
+  const vector<Mat34>& poses
 )
 {
   assert(poses.size() == points.cols());

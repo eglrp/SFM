@@ -2,14 +2,11 @@
 #define IMAGE_HPP
 
 #include <vector>
-#include <Eigen/Core>
 #include <iostream>
 #include <string>
+#include <Eigen/Core>
 
 #include "definitions.hpp"
-
-using namespace std;
-using namespace Eigen;
 
 class Image
 {

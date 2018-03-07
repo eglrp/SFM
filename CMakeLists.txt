@@ -1,7 +1,7 @@
 SET(PROJECT_NAME SFM)
 
 PROJECT(${PROJECT_NAME})
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 set(BUILD_TYPE Release)
 
@@ -31,7 +31,7 @@ include_directories(
 
 set(SFM_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/SFM.cpp
-  ${PROJECT_SOURCE_DIR}/src/math.cpp
+  ${PROJECT_SOURCE_DIR}/src/Math.cpp
   ${PROJECT_SOURCE_DIR}/src/Track.cpp
   ${PROJECT_SOURCE_DIR}/src/Image.cpp
 )

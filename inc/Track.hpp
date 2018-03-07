@@ -2,14 +2,16 @@
 #define TRACK_HPP
 
 #include <vector>
-#include <Eigen/Core>
 #include <iostream>
 #include <string>
+#include <Eigen/Core>
+
 #include "definitions.hpp"
+
 using namespace Eigen;
 using namespace std;
 
-typedef pair<int, Eigen::Vector2d> KeyPoint;
+typedef pair<int, Vector2d> KeyPoint;
 typedef vector< KeyPoint  > Occurrences;
 
 class Track
@@ -33,8 +35,8 @@ class Track
   private:
 
 };
-
 typedef vector< Track > Tracks;
+
 
 
 #endif
