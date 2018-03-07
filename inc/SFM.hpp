@@ -63,6 +63,7 @@ class SFM
 
     void setCloudPoint(Matrix<double,Dynamic,6> cloudPoint);
 
+    void projectCamera(string outputFile, int cameraID);
   private:
     // Enable to verbose the Cameras and Tracks creation
     bool _debugCameras = false;

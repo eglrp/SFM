@@ -7,8 +7,8 @@ Camera::Camera()
 
 void Camera::printCamera()
 {
-  printRed("name:" << name);
-  print("id: " << id);
+  printRed("Camera id: " << id);
+  print("name:" << name);
   print("f: " << f);
   print("k1: " << k1);
   print("k2: " << k2);

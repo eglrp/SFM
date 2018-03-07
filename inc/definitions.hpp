@@ -12,6 +12,9 @@ using namespace Eigen;
 
 #define print(x) cout << x << endl;
 #define printRed(x) cout << "\033[0;31m" << x <<"\033[0m"<< endl;
+#define printGreen(x) cout << "\033[0;32m" << x <<"\033[0m"<< endl;
+#define printBlue(x) cout << "\033[0;34m" << x <<"\033[0m"<< endl;
+
 // For ease of use
 
 using Mat3X = Eigen::Matrix<double, 3, Eigen::Dynamic>;

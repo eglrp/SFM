@@ -266,7 +266,6 @@ void SFM::computeSFM()
   for(int i = 0; i < _tracks.size(); i++)
   {
     Vector3d X = triangulateTrackDLT(_tracks[i], _cameras);
-    if(_tracks[i].nPoints == 3) break;
     Vector3d color = _tracks[i].color.cast<double>();
     Vector3d GT = _tracks[i].groundTruth;
     _cloudPoint(i,0) = X(0);
@@ -285,6 +284,73 @@ void SFM::computeSFM()
   }
   end = clock();
   print("Reconstruction done. Elapsed time: " << double(end-begin)/CLOCKS_PER_SEC * 1000 << " ms.");
+}
+
+void SFM::projectCamera(string outputFile, int cameraID)
+{
+  // Look for camera:
+  // predicate to find the right camera
+  auto pred = [cameraID](const Camera& im)
+  {
+    return (im.id == cameraID);
+  };
+  auto it = find_if(begin(_cameras),end(_cameras),pred);
+
+  Camera camera = *it;
+
+  Matrix<double,Dynamic,6> cloudPoint;
+  //cloudPoint.resize(tracks.size(),6);
+  Matrix3d R = camera.R;
+  Vector3d t = camera.t;
+
+  double w = camera.w;
+  double h = camera.h;
+
+  double min_w = -w/2;
+  double max_w = w/2;
+  double min_h = -h/2;
+  double max_h = h/2;
+
+  //Define intrinsics parameters
+  double f = camera.f;
+  double k1 = camera.k1;
+  double k2 = camera.k2;
+
+  vector<Matrix<double,1,6> > pointsToDraw;
+  for(int j = 0; j < _tracks.size(); j++)
+  {
+    Vector4d X_(_tracks[j].groundTruth(0),_tracks[j].groundTruth(1),_tracks[j].groundTruth(2),1);
+    Vector3d color = _tracks[j].color.cast<double>();
+    Vector2d pixelCoordsCam;
+    project3DPointToPixel(X_,pixelCoordsCam,R,t,f,k1,k2);
+
+    double pixelRow = pixelCoordsCam(0);
+    double pixelCol = pixelCoordsCam(1);
+
+    if(pixelCol >= min_h && pixelCol <= max_h && pixelRow >= min_w && pixelRow <= max_w)
+    {
+      double r = color(0);
+      double g = color(1);
+      double b = color(2);
+      Matrix<double,1,6> pointToDraw;
+      pointToDraw(0) = pixelCol;
+      pointToDraw(1) = pixelRow;
+      pointToDraw(2) = 1.0;
+      pointToDraw(3) = r;
+      pointToDraw(4) = g;
+      pointToDraw(5) = b;
+
+      pointsToDraw.push_back(pointToDraw);
+    }
+    cloudPoint.resize(pointsToDraw.size(),6);
+    for(int iPointToDraw = 0; iPointToDraw < pointsToDraw.size(); iPointToDraw ++)
+    {
+      cloudPoint.row(iPointToDraw) = pointsToDraw[iPointToDraw];
+    }
+  printBlue(pointsToDraw.size() << "/" << _tracks.size() << " points drawn.")
+  setCloudPoint(cloudPoint);
+  writePLY(outputFile);
+}
 }
 
 

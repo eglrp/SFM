@@ -3,10 +3,6 @@
 Vec3 triangulateTrackDLT(Track& track, const CamerasVec& cameras)
 {
   int nViews = track.nPoints;
-  if(nViews == 3)
-  {
-    track.printTrack();
-  }
   vector<Mat34> poses(nViews);
   Mat3X points(3, nViews);
 
@@ -36,64 +32,32 @@ Vec3 triangulateTrackDLT(Track& track, const CamerasVec& cameras)
     double cx = 0,cy = 0; // Pixel positions are already counted from center
     Vector2d undistorted;
     undistortPoint(distorted, undistorted,cx,cy,f,k1,k2);
+    points.col(i) =  - undistorted.homogeneous();
 
     // Get the pose:
     Matrix3d R = it->R;
     Vector3d t = it->t;
     Matrix<double,3,4> P;
     computeProjectionMatrix(R,t,P);
-
-    //project3DPointToCamera(track.groundTruth,undistorted,R,t);
-    Vector3d projectedGT = P * track.groundTruth.homogeneous();
-    projectedGT = - projectedGT/projectedGT(2);
-    // small workaround to avoid converting it to a 2D vector and then creating
-    // its homogeneous.
-    projectedGT(2) = -projectedGT(2);
-    points.col(i) = undistorted.homogeneous();
-    points.col(i) = projectedGT;
-
     poses[i] = P;
-    if(nViews == 3)
-    {
-      printRed(camKey << " (lines " << 3+5*camKey<< ":"<< 3+5*camKey+4<< ")")
-      print(poses[i]);
-
-      print("")
-      print("Distorted: [" << distorted.transpose() << "]");
-      print("f: "<< f << ", k1: " << k1 << " ,k2: " << k2)
-      print("Undistorted: [" << undistorted.homogeneous().transpose()<< "]");
-      print("ProjectedGT: [" << projectedGT.transpose()<< "]");
-    }
   }
 
 
   Vec4 X = TriangulateNViewsNonHomogeneous(points.cast<double>(),poses);
-  Vec3 sol(X(0)/X(3),X(1)/X(3),X(2)/X(3));
+  Vec3 sol(-X(0)/X(3),-X(1)/X(3),-X(2)/X(3));
   track.worldPosition = sol;
-  if(nViews==3) print("Solution:" << sol.transpose() << endl <<"GT:" << track.groundTruth.transpose())
   return sol;
 }
 
 void project3DPointToPixel(Vector4d& inputPoint, Vector2d& outputPoint,
   Matrix3d R, Vector3d t, double f, double k1, double k2)
 {
-    Matrix<double,3,4> P;
-    computeProjectionMatrix(R,t,P);
-    // world to image coords
-    Vector3d imageCoords = P * inputPoint;
-    // Perspective division
-    imageCoords = - imageCoords / imageCoords(2);
-    // Conversion to pixel coordinates:
-    double x = imageCoords(0);
-    double y = imageCoords(1);
-    // Intrinsics parameters
-    double p2 = (x*x + y*y);
-    double p4 = p2*p2;
-    double distortion = (1.0 + k1*p2 + k2*p4);
-    // Final conversion, no need to add cx/cy as the reference is already centered
-    outputPoint(0) = f * distortion * x;
-    outputPoint(1) = f * distortion * y;
+    Vector2d cameraCoords,pixelCoords;
+    project3DPointToCamera(inputPoint,cameraCoords,R,t);
+    projectCameraPointToPixel(cameraCoords,pixelCoords,f,0,0);
+    distortPoint(pixelCoords,outputPoint,k1,k2);
 }
+
 void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
   Matrix3d& R, Vector3d& t)
   {
@@ -102,25 +66,33 @@ void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
     // world to image coords
     Vector3d imageCoords = P * inputPoint;
     // Perspective division
-    imageCoords = - imageCoords / imageCoords(2);
+    imageCoords = imageCoords / imageCoords(2);
+
     outputPoint(0) = imageCoords(0);
     outputPoint(1) = imageCoords(1);
   }
 
-void projectCameraPointToPixel(Vector2d& inputPoint, Vector2d& outputPoint,
-  double f, double k1, double k2)
+void projectCameraPointToPixel(Vector2d& cameraCoords, Vector2d& pixelCoords,
+  double f,double cx, double cy)
   {
-    double x = inputPoint(0);
-    double y = inputPoint(1);
-    // Intrinsics parameters
-    double p2 = (x*x + y*y);
-    double p4 = p2*p2;
-    double distortion = (1.0 + k1*p2 + k2*p4);
-    // Final conversion, no need to add cx/cy as the reference is already centered
-    outputPoint(0) = f * distortion * x;
-    outputPoint(1) = f * distortion * y;
-  }
+    pixelCoords(0) = cameraCoords(0) * f + cx;
+    pixelCoords(1) = cameraCoords(1) * f + cy;
 
+  }
+void distortPoint(Vector2d undistortedPoint, Vector2d& distortedPoint, double k1, double k2)
+{
+  double x = undistortedPoint(0);
+  double y = undistortedPoint(1);
+  // Intrinsics parameters
+  double p2 = (x*x + y*y);
+  double p4 = p2*p2;
+  double distortion = (1.0 + k1*p2 + k2*p4);
+
+  // Final conversion, no need to add cx/cy as the reference is already centered
+  distortedPoint(0) = distortion * x;
+  distortedPoint(1) = distortion * y;
+
+}
 void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double cy, double f, double k1,double k2)
 {
   // Code "borrowed" from OpenCV library. No k3 or k4.
@@ -218,7 +190,7 @@ Vec4 TriangulateNViewsNonHomogeneous
     B(2*i +1) = y * t(2) - t(1);
 
   }
-  if(poses.size()==3)
+  if(false)
   {
     printRed("Points:")
     print(points)

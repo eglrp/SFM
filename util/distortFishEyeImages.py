@@ -50,7 +50,7 @@ if __name__ == "__main__":
     K[1,1] = focal
     D = np.array([k1,k2,0,0])
 
-    undistortedOpenCV = cv2.fisheye.undistortImage(dist, K, D=D,Knew=K.copy())
+    undistortedOpenCV = cv2.undistort(dist, K, distCoeffs=D,dst = None,newCameraMatrix=K.copy())
 
     cv2.namedWindow("OpenCV Undistortion Comparison",cv2.WINDOW_NORMAL)
     cv2.imshow("OpenCV Undistortion Comparison", np.hstack((dist,undistGT,undistortedOpenCV)))
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     Knew = K.copy()
     Knew[0,0] = 0.5 * focal;
     Knew[1,1] = 0.5 * focal;
-    undistortedOpenCV_scaled = cv2.fisheye.undistortImage(dist, K, D=D,Knew=Knew)
+    undistortedOpenCV_scaled = cv2.undistort(dist, K, distCoeffs=D,dst = None,newCameraMatrix=K.copy())
 
     cv2.namedWindow("OpenCV Undistortion Comparison scaled",cv2.WINDOW_NORMAL)
     cv2.imshow("OpenCV Undistortion Comparison scaled", np.hstack((dist,undistGT,undistortedOpenCV_scaled)))
@@ -68,7 +68,8 @@ if __name__ == "__main__":
 
     # Let's try just in case to undistort the undistorted. Because it's not
     # entirely clear from the documentation which one is the distorted
-    undistortedOpenCV_fromUndistort = cv2.fisheye.undistortImage(undistGT, K, D=D,Knew=K.copy())
+    undistortedOpenCV_fromUndistort = cv2.undistort(undistGT, K, distCoeffs=D,dst = None,newCameraMatrix=K.copy())
+
 
     cv2.namedWindow("OpenCV Undistortion Comparison with undistort",cv2.WINDOW_NORMAL)
     cv2.imshow("OpenCV Undistortion Comparison with undistort", np.hstack((dist,undistGT,undistortedOpenCV_fromUndistort)))
@@ -85,7 +86,7 @@ if __name__ == "__main__":
         K = np.eye(3)
         K[0,0] = focal * power;
         K[1,1] = focal * power;
-        undistortedOpenCV_differentF = cv2.fisheye.undistortImage(dist,K,D=D,Knew = K.copy())
+        undistortedOpenCV_differentF = cv2.undistort(dist, K, distCoeffs=D,dst = None,newCameraMatrix=K.copy())
 
         fullComparison = np.vstack((comparison, np.hstack((undistortedOpenCV_differentF,np.abs(dist - undistortedOpenCV_differentF)))))
         cv2.namedWindow(title,cv2.WINDOW_NORMAL)
