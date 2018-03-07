@@ -347,10 +347,10 @@ void SFM::projectCamera(string outputFile, int cameraID)
     {
       cloudPoint.row(iPointToDraw) = pointsToDraw[iPointToDraw];
     }
+  }
   printBlue(pointsToDraw.size() << "/" << _tracks.size() << " points drawn.")
   setCloudPoint(cloudPoint);
   writePLY(outputFile);
-}
 }
 
 

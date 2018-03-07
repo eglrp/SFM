@@ -55,7 +55,7 @@ void project3DPointToPixel(Vector4d& inputPoint, Vector2d& outputPoint,
     Vector2d cameraCoords,pixelCoords;
     project3DPointToCamera(inputPoint,cameraCoords,R,t);
     projectCameraPointToPixel(cameraCoords,pixelCoords,f,0,0);
-    distortPoint(pixelCoords,outputPoint,k1,k2);
+    //distortPoint(pixelCoords,outputPoint,k1,k2);
 }
 
 void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
