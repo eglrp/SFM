@@ -49,27 +49,44 @@ int main(int argc, char** argv)
   Vector4d X(1.0,0.5,0.4,1.0);
   // Define R and t for the camera
   Matrix3d R = Matrix3d::Identity();
-  Vector3d t(0.5,0.0,0.1);
+  Vector3d t(0.5,-0.5,0.1);
 
   //Define intrinsics parameters
-  double f = 1000;
-  double k1 = 0.1;
-  double k2 = 0.01;
+  double f = 10;
+  double k1 = 0.01;
+  double k2 = 0.0001;
+  double cx = 0;
+  double cy = 0;
   // The pixel coordinates vector
-  Vector2d pixelCoords;
+  Vector2d cameraCoords,pixelCoords,pixelCoordsDist;
   // Compute
-  project3DPointToPixel(X,pixelCoords,R,t,f,k1,k2);
-
+  //project3DPointToPixel(X,pixelCoords,R,t,f,k1,k2);
+  project3DPointToCamera(X,cameraCoords,R,t);
+  projectCameraPointToPixel(cameraCoords,pixelCoords,f,cx,cy);
+  distortPoint(pixelCoords,pixelCoordsDist,k1,k2);
+  printBlue("Projection of a single point to pixel coordinates")
   print("Camera fisheye model:")
   print("Rotation Matrix: ")
   print(R)
   print("Translation vector")
   print(t.transpose())
   print("Intrinsics: focal length f: " << f << ". Distortion parameters (k1,k2): ("<< k1 <<"," << k2 <<")")
-  print("The 3D world point (" << X.transpose() << ") is projected to (" << pixelCoords.transpose() << ") pixel coords under these circumstances.");
+  print("3D world [" << X.transpose() << "] -- project3DPointToCamera --> [" << cameraCoords.transpose() << "] Camera Coords");
+  print("Camera Coords [" << cameraCoords.transpose() << "] -- projectCameraPointToPixel --> [" << pixelCoords.transpose() << "] Pixel Coords (No distortion)");
+  print("Pixel Coords (No distortion) [" << pixelCoords.transpose() << "] -- distortPoint --> [" << pixelCoordsDist.transpose() << "] Pixel Coords (Distortion)");
+  Vector2d pixelCoords_recon,cameraCoords_recon;
+  undistortPoint(pixelCoordsDist,pixelCoords_recon,cx,cy,f,k1,k2);
+  print("Pixel Coords (Distortion) [" << pixelCoordsDist.transpose() << "] -- distortPoint --> [" << pixelCoords_recon.transpose() << "] Camera Coords");
+
+
   print("")
 
 
+  // Check for a whole projection and back
+
+
+
+  /*
 
   printRed("Triangulation of one point Example")
   // Images and tracks can be created with ease:
@@ -113,14 +130,23 @@ int main(int argc, char** argv)
   project3DPointToCamera(testPoint, cameraCoordsFromPixel0,cameras[0].R, cameras[0].t);
   project3DPointToCamera(testPoint, cameraCoordsFromPixel1,cameras[1].R, cameras[1].t);
 
-  //undistortPoint(Vector2d(pixelCoordsCam0(0),pixelCoordsCam0(1)),cameraCoordsFromPixel0,0,0,cameras[0].f,cameras[0].k1,cameras[0].k2);
-  //undistortPoint(Vector2d(pixelCoordsCam1(0),pixelCoordsCam1(1)),cameraCoordsFromPixel1,0,0,cameras[1].f,cameras[1].k1,cameras[1].k2);
-
   print("Point [" << testPoint.transpose() <<"] is projected to [" << cameraCoordsFromPixel0.transpose() <<
   "] in camera 0 and to [" << pixelCoordsCam0.transpose()<<"] in pixels")
   print("Point [" << testPoint.transpose() <<"] is projected to [" << cameraCoordsFromPixel1.transpose() <<
   "] in camera 1 and to [" << pixelCoordsCam1.transpose()<<"] in pixels")
 
+  Vector2d distortedPoint0,distortedPoint1;
+  distortPoint(pixelCoordsCam0,distortedPoint0,cameras[0].k1,cameras[0].k2);
+  distortPoint(pixelCoordsCam1,distortedPoint1,cameras[1].k1,cameras[1].k2);
+
+  print("Pixel coords ["<< pixelCoordsCam0.transpose() << "] is distorted to ["<< distortedPoint0.transpose() << "] at camera 0")
+  print("Pixel coords ["<< pixelCoordsCam1.transpose() << "] is distorted to ["<< distortedPoint1.transpose() << "] at camera 1")
+
+  Vector2d undistortedFromDistorted0,undistortedFromDistorted1;
+
+  undistortedPixelToCamera(distortedPoint0,undistortedFromDistorted0,0,0,cameras[0].f,cameras[0].k1,cameras[0].k2);
+
+  printRed("Distorted point [" << distortedPoint0.transpose() << "] is projected to [" << undistortedFromDistorted0.transpose() << "] in camera coordinates at camera 0")
 
   Occurrences occurrences(2);
   occurrences[0] = KeyPoint(0,pixelCoordsCam0);
@@ -194,5 +220,5 @@ int main(int argc, char** argv)
   // We can project all the points (the GT in this case to check) to a single camera plane
   // Image boundaries are not checked
   sfm.projectCamera("CameraProjection.ply",0);
-
+  */
 }

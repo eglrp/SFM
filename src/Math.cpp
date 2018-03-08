@@ -49,13 +49,12 @@ Vec3 triangulateTrackDLT(Track& track, const CamerasVec& cameras)
   return sol;
 }
 
-void project3DPointToPixel(Vector4d& inputPoint, Vector2d& outputPoint,
+void project3DPointToPixel(Vector4d& worldPosition, Vector2d& pixelCoords,
   Matrix3d R, Vector3d t, double f, double k1, double k2)
 {
-    Vector2d cameraCoords,pixelCoords;
-    project3DPointToCamera(inputPoint,cameraCoords,R,t);
+    Vector2d cameraCoords;
+    project3DPointToCamera(worldPosition,cameraCoords,R,t);
     projectCameraPointToPixel(cameraCoords,pixelCoords,f,0,0);
-    //distortPoint(pixelCoords,outputPoint,k1,k2);
 }
 
 void project3DPointToCamera(Vector4d& inputPoint, Vector2d& outputPoint,
@@ -87,12 +86,62 @@ void distortPoint(Vector2d undistortedPoint, Vector2d& distortedPoint, double k1
   double p2 = (x*x + y*y);
   double p4 = p2*p2;
   double distortion = (1.0 + k1*p2 + k2*p4);
-
   // Final conversion, no need to add cx/cy as the reference is already centered
   distortedPoint(0) = distortion * x;
   distortedPoint(1) = distortion * y;
 
+
 }
+void projectPixelToCamera(Vector2d pixelCoords, Vector2d& cameraCoords,double f,double cx,double cy)
+{
+  cameraCoords(0) = (pixelCoords(0) - cx ) / f;
+  cameraCoords(1) = (pixelCoords(1) - cy ) / f;
+}
+
+void undistortedPixelToCamera(Vector2d inputPoint, Vector2d& cameraCoords,double cx, double cy, double f, double k1, double k2)
+{
+  Vector2d undistorted;
+  undistortPointInPixels(inputPoint,undistorted,k1,k2);
+  projectPixelToCamera(undistorted,cameraCoords,f,cx,cy);
+
+}
+
+void undistortPointInPixels(Vector2d inputPoint, Vector2d& outputPoint, double k1,double k2)
+{
+  double scale = 1.0;
+
+  double theta_d = sqrt(inputPoint(0)* inputPoint(0) + inputPoint(1)*inputPoint(1));
+
+  if(theta_d > 1e-8)
+  {
+    double theta = theta_d;
+
+    const double EPS = 1e-8;
+    for(int i = 0; i < 10; i ++)
+    {
+      double theta2 = theta*theta;
+      double theta4 = theta2*theta2;
+
+      double k1_theta2 = k1 * theta2;
+      double k2_theta4 = k2 * theta4;
+
+      double theta_fix = (theta * ( 1 + k1_theta2 + k2_theta4) - theta_d)/
+        (1 + 3*k1_theta2 + 5 * k2_theta4);
+      theta = theta - theta_fix;
+      if(fabs(theta_fix) < EPS)
+      {
+        break;
+      }
+    }
+    scale =  tan(theta)/theta_d;
+    outputPoint = inputPoint * scale;
+  }
+  else
+  {
+    print("no distortion??");
+  }
+}
+
 void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,double cx,double cy, double f, double k1,double k2)
 {
   // Code "borrowed" from OpenCV library. No k3 or k4.

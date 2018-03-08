@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <math.h>
 
+
 #include "definitions.hpp"
 
 using namespace Eigen;
@@ -35,7 +36,7 @@ void undistortPoint(Vector2d inputPoint, Vector2d& outputPoint,
 //  P = R * X + t       (conversion from world to camera coordinates)
 //  p = -P / P.z        (perspective division)
 //  p' = f * r(p) * p
-void project3DPointToPixel(Vector4d& inputPoint, Vector2d& outputPoint,
+void project3DPointToPixel(Vector4d& worldPosition, Vector2d& pixelCoords,
   Matrix3d R, Vector3d t, double f, double k1, double k2);
 
   // Projects the world position to camera coordinates following the dataset specification
@@ -73,4 +74,7 @@ Vec4 TriangulateNViewsNonHomogeneous
   const std::vector<Mat34>& poses
 );
 
+void undistortedPixelToCamera(Vector2d inputPoint, Vector2d& cameraCoords,double cx, double cy, double f, double k1, double k2);
+void undistortPointInPixels(Vector2d inputPoint, Vector2d& outputPoint, double k1,double k2);
+void undistortOpenCV(Vector2d inputPoint, Vector2d& cameraCoords,double cx, double cy, double f, double k1, double k2);
 #endif
